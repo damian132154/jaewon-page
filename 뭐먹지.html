@@ -43,6 +43,24 @@ h1 b{color:var(--warm)}
  .seg{gap:7px}
  .sg{padding:8px 15px;font-size:13px}
 }
+.addrow{display:flex;gap:7px;flex-wrap:wrap}
+.addrow input{flex:1;min-width:120px}
+#acbox{position:absolute;top:100%;left:0;right:0;z-index:40;background:#fff;
+ border:1px solid var(--line);border-radius:11px;margin-top:5px;
+ max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.10);
+ display:none}
+#acbox.on{display:block}
+.ac{display:flex;gap:9px;align-items:center;padding:9px 13px;cursor:pointer;
+ font-size:13.5px;border-top:1px solid var(--line)}
+#acbox .ac:first-child{border-top:none}
+.ac:hover,.ac.sel{background:#fff4ea}
+.ac .an{flex:1}
+.ac .ak{font-size:11.5px;color:var(--ink3)}
+button.prim{background:var(--accent,#c2410c);color:#fff;border-color:transparent}
+.hr .hz{margin-left:6px;border:1px solid var(--line);background:#fff;
+ border-radius:7px;padding:2px 8px;font-size:11px;cursor:pointer;
+ font-family:inherit;color:var(--ink2)}
+.hr .hz:hover{border-color:var(--accent,#c2410c)}
 .card{background:#fff;border:1px solid var(--line);border-radius:16px;
  padding:17px 19px;margin-bottom:13px;box-shadow:0 1px 3px rgba(21,25,34,.05)}
 .ch{display:flex;align-items:center;gap:8px;margin-bottom:11px;flex-wrap:wrap}
@@ -147,11 +165,21 @@ footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:28px}
     <div class="ch"><div class="ct">최근 먹은 것</div>
       <span class="cs" id="histinfo"></span></div>
     <div id="hist"></div>
-    <div class="addrow">
-      <input type="text" id="cn" placeholder="목록에 없는 것 추가">
+    <div class="lb" style="margin-top:12px">먹은 것 적기
+      <span class="cs">이름을 치면 아래에서 고를 수 있다</span></div>
+    <div class="seg" id="mealseg" style="margin-bottom:8px"></div>
+    <div class="addrow" style="position:relative">
+      <input type="text" id="cn" placeholder="예: 김치찌개, ㄱㅊㅉㄱ, 라면"
+        autocomplete="off">
       <input type="number" id="ck" placeholder="kcal" style="max-width:80px">
-      <button id="cadd">추가</button>
+      <div id="acbox"></div>
     </div>
+    <div class="addrow" style="margin-top:7px">
+      <button id="cate" class="prim">먹었다</button>
+      <button id="cadd">후보에만</button>
+    </div>
+    <div class="tip" id="addtip">「먹었다」 를 누르면 아래 기록과
+      <b>식단 페이지 칼로리</b>에 같이 들어간다.</div>
   </div>
  </div>
 
@@ -822,22 +850,99 @@ function hist(){
     '<span class="hn">'+(h.e||'')+' '+h.n+'</span>'+
     (h.src==='식단'?'<span class="nc">식단</span>':'')+
     '<span>'+h.k+'</span>'+
+    '<button class="hz" data-a="'+encodeURIComponent(h.n)+'|'+h.k+
+      '|'+(h.e||'')+'">또</button>'+
     (h.src==='룰렛'?'<button class="hx" data-n="'+
       encodeURIComponent(h.n)+'">✕</button>':'')+'</div>'
   ).join('')||'<div class="tip">아직 없다. 뽑고 「이걸로 먹음」 을 누르거나 '+
     '식단 페이지에 적으면 여기 쌓인다.</div>';
+  el('hist').querySelectorAll('.hz').forEach(b=>b.onclick=()=>{
+    const [n,k,e]=b.dataset.a.split('|');
+    eatIt(decodeURIComponent(n),+k,e);
+  });
   el('hist').querySelectorAll('.hx').forEach(b=>b.onclick=()=>{
     const n=decodeURIComponent(b.dataset.n);
     const i=HIST.findIndex(h=>h.n===n);
     if(i>=0)HIST.splice(i,1);
     LSset(LSH,JSON.stringify(HIST));hist();pool();});
 }
+// ── 먹은 것 적기 ──────────────────────────────
+let eatMeal=autoMeal();
+M.forEach(n=>{
+  const b=document.createElement('button');
+  b.className='sg'+(n===eatMeal?' on':'');b.textContent=n;
+  b.onclick=()=>{eatMeal=n;
+    el('mealseg').querySelectorAll('.sg').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');};
+  el('mealseg').appendChild(b);
+});
+let acPick=null;
+function ac(){
+  const s=el('cn').value.trim(), box=el('acbox');
+  if(!s){box.classList.remove('on');box.innerHTML='';return;}
+  const hits=all().filter(f=>hit(f[0],s)).slice(0,12);
+  if(!hits.length){box.classList.remove('on');box.innerHTML='';return;}
+  box.innerHTML=hits.map(f=>
+    '<div class="ac" data-n="'+encodeURIComponent(f[0])+'" data-k="'+f[1]+'">'+
+    '<span>'+(f[5]||'🍽')+'</span><span class="an">'+f[0]+'</span>'+
+    '<span class="ak">'+f[1]+' kcal</span></div>').join('');
+  box.classList.add('on');
+  box.querySelectorAll('.ac').forEach(r=>r.onclick=()=>{
+    el('cn').value=decodeURIComponent(r.dataset.n);
+    el('ck').value=r.dataset.k;
+    acPick=[decodeURIComponent(r.dataset.n),+r.dataset.k];
+    box.classList.remove('on');
+  });
+}
+live(el('cn'),ac);
+el('cn').addEventListener('blur',()=>setTimeout(
+  ()=>el('acbox').classList.remove('on'),180));
+// 식단 페이지에도 같이 남긴다 — 거기 칼로리 합산에 잡히게
+function toDiet(n,k,m){
+  let D={};
+  try{D=JSON.parse(LSget('diet_log')||'{}');}catch(e){D={};}
+  const d=new Date(), key=d.getFullYear()+'-'+
+    String(d.getMonth()+1).padStart(2,'0')+'-'+
+    String(d.getDate()).padStart(2,'0');
+  D[key]=D[key]||{items:[]};
+  D[key].items.push({n:n,k:k,c:0,p:0,ft:0,q:1,
+    m:(m==='간식 (야식)'?'야식':m)});
+  LSset('diet_log',JSON.stringify(D));
+}
+function eatIt(n,k,e,m){
+  const d=new Date();
+  HIST.unshift({n:n,k:k,m:m||eatMeal,e:e||'🍽',
+    d:d.toISOString().slice(5,10),
+    t:String(d.getHours()).padStart(2,'0')+':'+
+      String(d.getMinutes()).padStart(2,'0')});
+  HIST=HIST.slice(0,100);
+  LSset(LSH,JSON.stringify(HIST));
+  toDiet(n,k,m||eatMeal);
+  hist();pool();
+}
+function flash(id,msg){
+  const b=el(id), old=b.textContent;
+  b.textContent=msg;setTimeout(()=>b.textContent=old,1200);
+}
+el('cate').onclick=()=>{
+  const n=el('cn').value.trim();
+  let k=+el('ck').value||0;
+  if(!n)return;
+  const known=all().find(f=>f[0]===n);
+  if(!k&&known)k=known[1];
+  eatIt(n,k,known?known[5]:'🍽');
+  if(!known){CUSTOM.push({n:n,k:k});LSset(LSC,JSON.stringify(CUSTOM));}
+  el('cn').value='';el('ck').value='';el('acbox').classList.remove('on');
+  flash('cate','기록했다');
+};
 el('cadd').onclick=()=>{
   const n=el('cn').value.trim(),k=+el('ck').value||0;
   if(!n)return;
-  CUSTOM.push({n:n,k:k});
-  LSset(LSC,JSON.stringify(CUSTOM));
-  el('cn').value='';el('ck').value='';pool();
+  if(!all().find(f=>f[0]===n)){
+    CUSTOM.push({n:n,k:k});LSset(LSC,JSON.stringify(CUSTOM));
+  }
+  el('cn').value='';el('ck').value='';el('acbox').classList.remove('on');
+  pool();flash('cadd','후보에 넣음');
 };
 // ── 주변 검색 ─────────────────────────────────
 let LOC=null;

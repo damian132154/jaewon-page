@@ -1,0 +1,107 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2×2 빈칸 판</title><style>
+:root{--bg:#f6f8fa;--card:#fff;--ink:#141821;--ink2:#5a6472;--ink3:#98a1ad;
+--line:#e3e8ee;--blue:#1d4ed8;--green:#0f766e;--red:#c2410c;--gray:#94a3b8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font-family:"맑은 고딕",Malgun Gothic,system-ui,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:36px 20px 80px}
+h1{margin:0 0 5px;font-size:27px;font-weight:800;letter-spacing:-.02em}
+h1 b{color:var(--blue)}
+.lead{margin:0 0 22px;color:var(--ink2);font-size:13.5px;line-height:1.75}
+.lead b{color:var(--ink)}
+h2{font-size:15px;margin:30px 0 4px;display:flex;align-items:center;gap:9px}
+h2 span.n{font-size:11.5px;font-weight:700;color:var(--ink3);
+ background:#eef2f7;padding:3px 9px;border-radius:20px}
+.sub{font-size:12.5px;color:var(--ink2);margin:0 0 13px;line-height:1.7}
+table{width:100%;border-collapse:separate;border-spacing:8px;margin-top:4px}
+th{font-size:12px;color:var(--ink2);font-weight:700;padding:4px 2px;
+ text-align:center}
+th.rowh{text-align:right;width:120px;min-width:120px;padding-right:12px;
+ white-space:nowrap;vertical-align:middle;font-size:13px;color:var(--ink)}
+th.rowh small{font-weight:400;font-size:11px;color:var(--ink3)}
+td{vertical-align:top;background:#fff;border:1px solid var(--line);
+ border-radius:13px;padding:11px;width:50%}
+td.empty{background:#fffaf5;border-style:dashed;border-color:#f0c9a8}
+.run{border-left:3px solid var(--gray);padding:8px 0 8px 11px;margin-bottom:9px}
+.run:last-child{margin-bottom:0}
+.run.ok{border-left-color:var(--green)}
+.run.run{border-left-color:var(--blue)}
+.run.bad{border-left-color:#dc2626}
+.run.hold{border-left-color:#cbd5e1}
+.rh{display:flex;align-items:baseline;gap:8px}
+.rh b{font-size:14px;letter-spacing:-.01em}
+.st{font-size:10.5px;font-weight:700;color:var(--ink3);background:#f1f5f9;
+ padding:2px 8px;border-radius:20px}
+.run.ok .st{background:#e6f7f2;color:var(--green)}
+.run.run .st{background:#e9f0ff;color:var(--blue)}
+.run.bad .st{background:#fdecec;color:#dc2626}
+.rm{font-size:11.5px;color:var(--ink3);margin-top:3px}
+.rp{font-size:12px;color:var(--ink2);margin-top:4px;line-height:1.55}
+.mm{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px}
+.mc{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;
+ background:#f1f5f9;color:#94a3b8}
+.mc.done{background:#e6f7f2;color:var(--green)}
+.mc.half{background:#fff4e6;color:var(--red)}
+.mc.na{background:#f8fafc;color:#cbd5e1;text-decoration:line-through}
+.gap{font-size:12.5px;color:var(--red);font-weight:700}
+.gap small{display:block;font-weight:400;color:var(--ink2);margin-top:4px;
+ line-height:1.6}
+.note{background:#fff;border:1px solid var(--line);border-left:3px solid var(--blue);
+ border-radius:11px;padding:13px 16px;font-size:12.5px;color:var(--ink2);
+ line-height:1.75;margin-top:14px}
+.note b{color:var(--ink)}
+.side{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.side .run{flex:1;min-width:210px;background:#fff;border:1px solid var(--line);
+ border-radius:12px;padding:11px 13px;border-left-width:3px}
+footer{margin-top:36px;text-align:center;color:var(--ink3);font-size:11.5px;
+ line-height:1.9}
+code{background:#eef2f7;padding:2px 7px;border-radius:5px;font-size:11px}
+@media(max-width:640px){
+ table,tbody,tr,td{display:block;width:100%}
+ th.rowh{display:block;text-align:left;width:auto;padding:10px 2px 0}
+ thead{display:none}
+ td{margin-bottom:8px}
+ td:before{content:attr(data-c);display:block;font-size:11.5px;
+  font-weight:700;color:var(--ink2);margin-bottom:7px}
+}
+</style></head><body><div class="wrap">
+<h1>2×2 <b>빈칸 판</b></h1>
+<p class="lead">주장은 <b>성장 모드를 정하는 것은 온도가 아니라 borazine 분해 정도</b>다.
+분해를 바꾸는 손잡이가 둘 — <b>기상 H2</b> 와 <b>플라즈마 파워</b>.
+이 네 칸이 다 차야 주장이 선다. 빈 칸이 곧 다음에 돌릴 런이다.<br>
+저온 계열 기준 : 1150 °C · BZ 0.022 · Ar 10 · 10 min.</p>
+
+<h2>2×2 <span class="n">4 / 4 칸</span></h2>
+<p class="sub">가로 = 플라즈마 파워, 세로 = 기상 H2 유무.
+칸 안의 색 막대는 상태 — <b>초록 완료 · 파랑 진행중 · 빨강 실패</b>.
+아래 작은 칩은 측정 진행이다.</p>
+<table><thead><tr><th class="rowh"></th><th>플라즈마 10 W</th><th>플라즈마 30 W</th></tr></thead><tbody><tr><th class="rowh">H2 있음<br><small>기상 H2 O</small></th><td data-c="H2 있음 · 10 W"><div class="run run"><div class="rh"><b>LCVD#111</b><span class="st">진행중</span></div><div class="rm">기판 #001　·　26.08.31　·　10 min.</div><div class="rp">Ar 추가 — 새 기준</div><div class="mm"><span class="mc todo">SEM</span><span class="mc todo">XPS</span><span class="mc todo">XRD</span><span class="mc todo">전사</span><span class="mc todo">OM</span><span class="mc todo">Raman</span><span class="mc todo">AFM</span></div></div></td><td data-c="H2 있음 · 30 W"><div class="run run"><div class="rh"><b>LCVD#114</b><span class="st">진행중</span></div><div class="rm">기판 #001　·　26.09.01　·　10 min.</div><div class="rp">2×2 : H2 있음 x 30 W — 플라즈마 3 배</div><div class="mm"><span class="mc todo">SEM</span><span class="mc todo">XPS</span><span class="mc todo">XRD</span><span class="mc todo">전사</span><span class="mc todo">OM</span><span class="mc todo">Raman</span><span class="mc todo">AFM</span></div></div></td></tr><tr><th class="rowh">H2 없음<br><small>Ar 단독 성장</small></th><td data-c="H2 없음 · 10 W"><div class="run plan"><div class="rh"><b>LCVD#112</b><span class="st">예정</span></div><div class="rm">기판 #001　·　26.08.31　·　10 min.</div><div class="rp">H2 제거 — Ar 만 (H2 어닐링 없음 · NiO 가능 · 기준 불가)</div><div class="mm"><span class="mc todo">SEM</span><span class="mc todo">XPS</span><span class="mc todo">XRD</span><span class="mc todo">전사</span><span class="mc todo">OM</span><span class="mc todo">Raman</span><span class="mc todo">AFM</span></div></div><div class="run plan"><div class="rh"><b>LCVD#113</b><span class="st">예정</span></div><div class="rm">기판 #001　·　26.08.31　·　10 min.</div><div class="rp">#112 재실험 — H2 어닐링 후 Ar 단독 성장 (NiO 배제)</div><div class="mm"><span class="mc todo">SEM</span><span class="mc todo">XPS</span><span class="mc todo">XRD</span><span class="mc todo">전사</span><span class="mc todo">OM</span><span class="mc todo">Raman</span><span class="mc todo">AFM</span></div></div></td><td data-c="H2 없음 · 30 W"><div class="run plan"><div class="rh"><b>LCVD#115</b><span class="st">예정</span></div><div class="rm">기판 #002　·　26.09.01　·　10 min.</div><div class="rp">2×2 : H2 없음 x 30 W — 어닐링만 H2, 성장은 Ar 단독 · 기판 #</div><div class="mm"><span class="mc todo">SEM</span><span class="mc todo">XPS</span><span class="mc todo">XRD</span><span class="mc todo">전사</span><span class="mc todo">OM</span><span class="mc todo">Raman</span><span class="mc todo">AFM</span></div></div></td></tr></tbody></table>
+<div class="note">
+<b>#112 는 기준에서 뺀다.</b> 처음부터 H2 를 안 흘려 표면에 NiO 가 남았을 수 있다.
+그러면 H2 를 뺀 효과가 (ㄱ) 기상 borazine 분해 변화인지 (ㄴ) 표면이 산화물인지
+구별이 안 된다. <b>#113 이 그 자리를 대신한다</b> — H2 로 어닐링해 표면을 환원한 뒤
+Ar 단독 성장.<br>
+XPS 에 <b>O 1s · Ni 2p 를 꼭 넣을 것</b> — 금속 Ni 852.6 eV vs NiO 854.5 eV
++ 위성(~861). NiO 가 실제로 있었다면 #112 는 폐기가 아니라
+「용해 경로를 끈 조건」으로 따로 쓸 수 있다.
+</div>
+<div class="note">
+<b>기판 포일이 두 번째 축이다.</b> #111~#114 는 Annealing CVD<b>#001</b>,
+#115 부터는 <b>#002</b>. 포일이 바뀌면 2×2 의 한 칸이 아니라 새 기준점이 된다.
+#115 를 읽을 때 이걸 먼저 확인할 것.
+</div>
+
+<h2>같은 온도의 변주 <span class="n">2×2 밖</span></h2>
+<p class="sub">체류시간 · 성장시간처럼 축이 다른 것들. 2×2 가 선 다음에 붙는다.</p>
+<div class="side"><div class="run ok"><div class="rh"><b>LCVD#110</b><span class="st">완료</span></div><div class="rm">기판 Our Ni(111)　·　26.08.29　·　10 min.</div><div class="rp">온도 상향 · 시간 단축</div><div class="mm"><span class="mc todo">SEM</span><span class="mc todo">XPS</span><span class="mc todo">XRD</span><span class="mc todo">전사</span><span class="mc todo">OM</span><span class="mc todo">Raman</span><span class="mc todo">AFM</span></div></div><div class="run plan"><div class="rh"><b>LCVD#116</b><span class="st">예정</span></div><div class="rm">기판 #002　·　26.09.02　·　10 min.</div><div class="rp">총 유량 2배 — 체류시간 축 · 기판 #002</div><div class="mm"><span class="mc todo">SEM</span><span class="mc todo">XPS</span><span class="mc todo">XRD</span><span class="mc todo">전사</span><span class="mc todo">OM</span><span class="mc todo">Raman</span><span class="mc todo">AFM</span></div></div><div class="run plan"><div class="rh"><b>LCVD#117</b><span class="st">예정</span></div><div class="rm">기판 #002　·　26.09.02　·　2 min.</div><div class="rp">성장시간 10 → 2 min — 핵생성 단계 · 기판 #002</div><div class="mm"><span class="mc todo">SEM</span><span class="mc todo">XPS</span><span class="mc todo">XRD</span><span class="mc todo">전사</span><span class="mc todo">OM</span><span class="mc todo">Raman</span><span class="mc todo">AFM</span></div></div></div>
+
+<h2>고온 Thermal <span class="n">HCVD</span></h2>
+<p class="sub">플라즈마 없이 온도만으로 분해시키는 쪽. 저온 플라즈마와 짝을 이뤄야
+「온도가 아니라 분해」가 증명된다.</p>
+<div class="side"><div class="run ok"><div class="rh"><b>HCVD#083</b><span class="st">완료</span></div><div class="rm">기판 Our Ni(111)　·　26.08.29　·　10 min.</div><div class="rp">Plasma 도입 · 시간 단축</div><div class="mm"><span class="mc todo">SEM</span><span class="mc todo">XPS</span><span class="mc todo">XRD</span><span class="mc todo">전사</span><span class="mc todo">OM</span><span class="mc todo">Raman</span><span class="mc todo">AFM</span></div></div><div class="run bad"><div class="rh"><b>HCVD#084</b><span class="st">실패</span></div><div class="rm">기판 c-plane sapphire (지환)　·　26.08.30　·　30 min.</div><div class="rp">sapphire 계열 (경열 레시피)</div><div class="mm"><span class="mc todo">SEM</span><span class="mc todo">XPS</span><span class="mc todo">XRD</span><span class="mc todo">전사</span><span class="mc todo">OM</span><span class="mc todo">Raman</span><span class="mc todo">AFM</span></div></div></div>
+
+<footer><code>python zz_tools/scripts/build_matrix.py</code> 로 다시 만든다<br>
+2026-09-01 기준 · 런표.xlsx 에서 자동</footer>
+</div></body></html>
