@@ -360,15 +360,14 @@ function absOf(k){return Object.values((DB[k]||{}).ab||{})
   .reduce((a,b)=>a+(+b||0),0);}
 function kmOf(k){return RUN.filter(r=>r.d===k).reduce((a,b)=>a+(+b.km||0),0);}
 function didAny(k){return repsOf(k)>0||absOf(k)>0||kmOf(k)>0;}
-// 지나간 팔굽 날 중 아무것도 안 한 날 수만큼 사이클을 민다.
-// 달리기 날을 건너뛴 것으로는 밀지 않는다 — 그건 그냥 그 주 횟수가 줄 뿐이다.
+// 지나간 날 중 아무것도 안 한 날 수만큼 사이클을 민다.
+// 팔굽 날이든 사이사이 달리기 날이든 똑같이 민다 — 순서가 그대로 보존된다.
 function catchUp(){
   if(!CFG.seen){CFG.seen=KEY;saveC();return 0;}
   let n=0,k=shift(CFG.seen,1),guard=0;
   while(k<KEY&&guard++<400){
-    if(planOf(k)!==null&&!didAny(k)&&!(DB[k]||{}).skip){
-      CFG.off=(CFG.off||0)+1;n++;
-    }
+    const due=(planOf(k)!==null)||isRun(k);
+    if(due&&!didAny(k)&&!(DB[k]||{}).skip){CFG.off=(CFG.off||0)+1;n++;}
     k=shift(k,1);
   }
   CFG.seen=KEY;saveC();
@@ -426,7 +425,8 @@ function carryBox(){
   box.innerHTML='<div class="carry" style="background:#f8fafc;'+
     'border-color:var(--line)">'+
     '<b>격일로 돈다.</b> 팔굽+AB 하고 그 다음 날 3 km, 다시 팔굽+AB. '+
-    '팔굽 사이가 48 시간이라 회복 간격이 지켜진다.'+
+    '팔굽 사이가 48 시간이라 회복 간격이 지켜진다. '+
+    '<b>어느 쪽이든 건너뛰면 사이클 전체가 하루 밀린다</b> — 겹쳐서 두 배로 하지 않는다.'+
     (o?' 지금까지 <b>'+o+'일</b> 밀렸다 — 사이클 전체가 그만큼 옮겨졌다.':'')+
     '<div class="ogm" style="margin-top:7px;font-size:12.5px">'+nx+'</div>'+
     '<div class="row"><button class="b g" id="undoslide">하루 당기기</button>'+
@@ -524,7 +524,8 @@ function renderPU(){
   if(!sets&&p===null){
     tip='<b>왜 쉬나</b> — 같은 부위는 48 시간이 필요하다. '+
       '격일 배치가 그 간격을 지키게 되어 있다. '+
-      '오늘은 3 km 달리기 날이다 — 승온 · 냉각 중에 나갔다 온다.';
+      '<b>오늘은 3 km 달리기 날이다</b> — 승온 · 냉각 중에 나갔다 온다. '+
+      '이것도 건너뛰면 사이클이 하루 밀린다.';
   }else if(CFG.off||0){
     tip='<b>'+CFG.off+'일 밀려서 요일이 그만큼 옮겨졌다.</b> '+
       '겹쳐서 두 배로 하지 마라 — 회복이 안 된 근육에 또 넣으면 그냥 다친다. '+
