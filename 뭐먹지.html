@@ -742,7 +742,25 @@ seg(el('segOpt'),OPTS,selOpt,'bl');
   el('segSkip').appendChild(b);
 });
 
-function all(){return DB.concat(CUSTOM.map(c=>[c.n,c.k,'','직접','','🍽']));}
+// 직접 추가한 것 청소 — 목록에 이미 있거나 저희끼리 겹치는 이름은 버린다
+(function(){
+  const seen=new Set(DB.map(f=>f[0]));
+  const keep=[];
+  CUSTOM.forEach(c=>{
+    const n=c&&String(c.n||'').trim();
+    if(!n||seen.has(n))return;
+    seen.add(n);keep.push({n:n,k:+c.k||0});
+  });
+  if(keep.length!==CUSTOM.length){CUSTOM=keep;LSset(LSC,JSON.stringify(CUSTOM));}
+})();
+function all(){
+  const seen=new Set(),out=[];
+  DB.concat(CUSTOM.map(c=>[c.n,c.k,'','직접','','🍽'])).forEach(f=>{
+    if(seen.has(f[0]))return;
+    seen.add(f[0]);out.push(f);
+  });
+  return out;
+}
 function pick(){
   const recent=SKIP?merged().slice(0,SKIP).map(h=>h.n):[];
   let list=all().filter(f=>{
