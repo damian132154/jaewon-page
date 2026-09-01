@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>몸 관리</title>
+<style>
+:root{--bg:#f6f8fa;--ink:#141821;--ink2:#5a6472;--ink3:#98a1ad;
+--line:#e3e8ee;--diet:#0f766e;--gym:#1d4ed8}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font-family:"맑은 고딕",Malgun Gothic,system-ui,sans-serif;
+ display:flex;flex-direction:column}
+header{background:#fff;border-bottom:1px solid var(--line);
+ padding:10px 16px 0;flex:0 0 auto}
+.top{display:flex;align-items:baseline;gap:10px;max-width:900px;margin:0 auto}
+h1{margin:0;font-size:17px;font-weight:800;letter-spacing:-.02em}
+h1 b{color:var(--diet)}
+.lead{margin:0;font-size:11.5px;color:var(--ink3)}
+.tabs{display:flex;gap:4px;max-width:900px;margin:8px auto 0}
+.tb{border:none;background:none;padding:9px 16px 10px;font-size:13.5px;
+ font-weight:700;color:var(--ink2);cursor:pointer;font-family:inherit;
+ border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.tb:hover{color:var(--ink)}
+.tb.on{color:var(--c);border-bottom-color:var(--c)}
+.tb[data-t="diet"]{--c:var(--diet)}
+.tb[data-t="gym"]{--c:var(--gym)}
+main{flex:1 1 auto;min-height:0;position:relative}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:none;
+ background:var(--bg)}
+iframe.hide{display:none}
+</style></head><body>
+<header>
+  <div class="top">
+    <h1>몸 <b>관리</b></h1>
+    <p class="lead">식단과 운동은 같이 봐야 한다 — 먹은 것과 태운 것</p>
+  </div>
+  <div class="tabs">
+    <button class="tb on" data-t="diet">식단 · 칼로리</button>
+    <button class="tb" data-t="gym">운동 기록</button>
+  </div>
+</header>
+<main>
+  <iframe id="f-diet" src="식단.html" title="식단 · 칼로리"></iframe>
+  <iframe id="f-gym" class="hide" src="운동.html" title="운동 기록"
+    loading="lazy"></iframe>
+</main>
+<script>
+// 마지막으로 본 칸을 기억한다
+const LS='body_tab';
+const get=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const set=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+function show(t){
+  document.querySelectorAll('.tb').forEach(b=>
+    b.classList.toggle('on',b.dataset.t===t));
+  document.getElementById('f-diet').classList.toggle('hide',t!=='diet');
+  document.getElementById('f-gym').classList.toggle('hide',t!=='gym');
+  set(LS,t);
+}
+document.querySelectorAll('.tb').forEach(b=>
+  b.onclick=()=>show(b.dataset.t));
+show(get(LS)==='gym'?'gym':'diet');
+</script>
+</body></html>
