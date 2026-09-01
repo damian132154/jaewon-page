@@ -57,6 +57,7 @@ h1 b{color:var(--warm)}
 .ac .an{flex:1}
 .ac .ak{font-size:11.5px;color:var(--ink3)}
 button.prim{background:var(--accent,#c2410c);color:#fff;border-color:transparent}
+.hr .xn{margin-left:6px;font-size:11px;color:var(--accent,#c2410c)}
 .hr .hz{margin-left:6px;border:1px solid var(--line);background:#fff;
  border-radius:7px;padding:2px 8px;font-size:11px;cursor:pointer;
  font-family:inherit;color:var(--ink2)}
@@ -178,7 +179,7 @@ footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:28px}
       <button id="cate" class="prim">먹었다</button>
       <button id="cadd">후보에만</button>
     </div>
-    <div class="tip" id="addtip">「먹었다」 를 누르면 아래 기록과
+    <div class="tip" id="addtip"><b>먹은 것에 바로 추가된다.</b> 아래 기록과
       <b>식단 페이지 칼로리</b>에 같이 들어간다.</div>
   </div>
  </div>
@@ -230,6 +231,8 @@ function dietEaten(){
   const out=[];
   Object.keys(D).sort().reverse().forEach(k=>{
     (D[k].items||[]).slice().reverse().forEach(x=>{
+      // 여기서 적어 넣은 것은 이미 HIST 에 있다 — 두 번 세지 않는다
+      if(x&&x.src==='뭐먹지')return;
       out.push({n:x.n,k:Math.round(x.k*(x.q||1)),m:x.m||'',e:'🍽',
                 d:k.slice(5),t:'',src:'식단'});
     });
@@ -762,7 +765,10 @@ function all(){
   return out;
 }
 function pick(){
-  const recent=SKIP?merged().slice(0,SKIP).map(h=>h.n):[];
+  let recent=[];
+  if(SKIP){const s=new Set();
+    for(const h of merged()){if(!s.has(h.n)){s.add(h.n);recent.push(h.n);}
+      if(recent.length>=SKIP)break;}}
   let list=all().filter(f=>{
     if(selMeal&&f[2]){
       const key=selMeal==='간식 (야식)'?'야식':selMeal;
@@ -798,10 +804,12 @@ function live(input,fn){
 }
 
 let FQ='';
+function recentN(){const s=new Set();merged().forEach(h=>s.add(h.n));
+  return Math.min(SKIP,s.size);}
 function pool(){
   const l=pick();
   el('pool').textContent=l?('후보 '+l.length+' 개'+
-    (SKIP?'　·　최근 '+Math.min(SKIP,merged().length)+' 끼 제외':'')):
+    (SKIP&&recentN()?'　·　최근 '+recentN()+' 가지 제외':'')):
     '조건에 맞는 게 없다. 조건을 풀어라.';
   el('cands').innerHTML=l?l.slice(0,24).map(f=>
     '<span class="cd">'+(f[5]||'')+' '+f[0]+'</span>').join(''):'';
@@ -860,20 +868,36 @@ el('eat').onclick=()=>{
   setTimeout(()=>b.textContent='이걸로 먹음',1200);
 };
 function hist(){
-  const all=merged();
-  const nd=all.length-HIST.length;
-  el('histinfo').textContent=all.length+' 개'+(nd?'　(식단 '+nd+')':'');
-  el('hist').innerHTML=all.slice(0,12).map(h=>
-    '<div class="hr"><span class="hd">'+h.d+' '+(h.t||'')+'</span>'+
-    '<span class="hn">'+(h.e||'')+' '+h.n+'</span>'+
-    (h.src==='식단'?'<span class="nc">식단</span>':'')+
+  const raw=merged();
+  // 같은 날 · 같은 음식은 한 줄로 묶는다 (×2 처럼)
+  const g=[],idx={};
+  raw.forEach(h=>{
+    const key=h.d+'|'+h.n;
+    if(idx[key]!==undefined){
+      const o=g[idx[key]];o.c++;o.k+= (+h.k||0);
+      if(h.src==='식단')o.diet=true; else o.roul=true;
+      return;
+    }
+    idx[key]=g.length;
+    g.push({n:h.n,k:+h.k||0,e:h.e||'',d:h.d,t:h.t||'',c:1,
+            diet:h.src==='식단',roul:h.src==='룰렛'});
+  });
+  const nd=raw.length-HIST.length;
+  el('histinfo').textContent=raw.length+' 끼'+
+    (g.length!==raw.length?'　·　'+g.length+' 줄':'')+
+    (nd?'　(식단 '+nd+')':'');
+  el('hist').innerHTML=g.slice(0,14).map(h=>
+    '<div class="hr"><span class="hd">'+h.d+' '+h.t+'</span>'+
+    '<span class="hn">'+h.e+' '+h.n+
+      (h.c>1?'<b class="xn">×'+h.c+'</b>':'')+'</span>'+
+    (h.diet?'<span class="nc">식단</span>':'')+
     '<span>'+h.k+'</span>'+
-    '<button class="hz" data-a="'+encodeURIComponent(h.n)+'|'+h.k+
-      '|'+(h.e||'')+'">또</button>'+
-    (h.src==='룰렛'?'<button class="hx" data-n="'+
+    '<button class="hz" data-a="'+encodeURIComponent(h.n)+'|'+
+      Math.round(h.k/h.c)+'|'+h.e+'">또</button>'+
+    (h.roul?'<button class="hx" data-n="'+
       encodeURIComponent(h.n)+'">✕</button>':'')+'</div>'
   ).join('')||'<div class="tip">아직 없다. 뽑고 「이걸로 먹음」 을 누르거나 '+
-    '식단 페이지에 적으면 여기 쌓인다.</div>';
+    '위에 직접 적으면 여기 쌓인다.</div>';
   el('hist').querySelectorAll('.hz').forEach(b=>b.onclick=()=>{
     const [n,k,e]=b.dataset.a.split('|');
     eatIt(decodeURIComponent(n),+k,e);
@@ -882,8 +906,19 @@ function hist(){
     const n=decodeURIComponent(b.dataset.n);
     const i=HIST.findIndex(h=>h.n===n);
     if(i>=0)HIST.splice(i,1);
-    LSset(LSH,JSON.stringify(HIST));hist();pool();});
+    LSset(LSH,JSON.stringify(HIST));hist();pool();
+  });
 }
+el('cadd').onclick=()=>{
+  const n=el('cn').value.trim(),k=+el('ck').value||0;
+  if(!n)return;
+  if(!all().find(f=>f[0]===n)){
+    CUSTOM.push({n:n,k:k});LSset(LSC,JSON.stringify(CUSTOM));
+  }
+  el('cn').value='';el('ck').value='';el('acbox').classList.remove('on');
+  pool();flash('cadd','후보에 넣음');
+};
+
 // ── 먹은 것 적기 ──────────────────────────────
 let eatMeal=autoMeal();
 M.forEach(n=>{
@@ -894,7 +929,6 @@ M.forEach(n=>{
     b.classList.add('on');};
   el('mealseg').appendChild(b);
 });
-let acPick=null;
 function ac(){
   const s=el('cn').value.trim(), box=el('acbox');
   if(!s){box.classList.remove('on');box.innerHTML='';return;}
@@ -908,7 +942,6 @@ function ac(){
   box.querySelectorAll('.ac').forEach(r=>r.onclick=()=>{
     el('cn').value=decodeURIComponent(r.dataset.n);
     el('ck').value=r.dataset.k;
-    acPick=[decodeURIComponent(r.dataset.n),+r.dataset.k];
     box.classList.remove('on');
   });
 }
@@ -924,7 +957,7 @@ function toDiet(n,k,m){
     String(d.getDate()).padStart(2,'0');
   D[key]=D[key]||{items:[]};
   D[key].items.push({n:n,k:k,c:0,p:0,ft:0,q:1,
-    m:(m==='간식 (야식)'?'야식':m)});
+    m:(m==='간식 (야식)'?'야식':m),src:'뭐먹지'});
   LSset('diet_log',JSON.stringify(D));
 }
 function eatIt(n,k,e,m){
@@ -962,6 +995,7 @@ el('cadd').onclick=()=>{
   el('cn').value='';el('ck').value='';el('acbox').classList.remove('on');
   pool();flash('cadd','후보에 넣음');
 };
+
 // ── 주변 검색 ─────────────────────────────────
 let LOC=null;
 function locate(){
