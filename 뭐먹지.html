@@ -850,16 +850,17 @@ function locate(){
     {enableHighAccuracy:true,timeout:8000,maximumAge:300000});
 }
 function openMap(kind){
-  const nm=last?last[0]:'맛집';
+  const nm=last?last[0]:'';
+  if(!nm)return;
+  const q=encodeURIComponent(nm);   // 메뉴 이름만. 「맛집」 안 붙인다
   if(kind==='k'){
-    const q=encodeURIComponent(nm);
     const u=LOC
       ? 'https://map.kakao.com/?q='+q+'&urlX='+Math.round(LOC.longitude*1e6)+
         '&urlY='+Math.round(LOC.latitude*1e6)+'&urlLevel=4'
-      : 'https://map.kakao.com/?q='+encodeURIComponent(nm+' 맛집');
+      : 'https://map.kakao.com/?q='+q;
     window.open(u,'_blank');
   }else{
-    const u='https://map.naver.com/p/search/'+encodeURIComponent(nm+' 맛집');
+    const u='https://map.naver.com/p/search/'+q;
     window.open(LOC?u+'?c=15.00,0,0,0,dh&x='+LOC.longitude+'&y='+LOC.latitude:u,
       '_blank');
   }
