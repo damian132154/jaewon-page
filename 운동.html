@@ -165,7 +165,7 @@ button.r{background:var(--red)}
 </style></head><body>
 <div class="wrap">
 <header><h1>운동 <b>기록</b></h1>
-<p class="lead"><b>팔굽 + AB 는 퇴근 후 집에서 20 분</b> — 월 · 수 · 금.<br><b>3 km 달리기는 실험 중 승온 · 냉각 시간에</b> — 요일은 안 정한다. 주 2 회.<br>밀리면 요일 배치가 통째로 하루씩 미끄러진다. 겹쳐서 두 배로 하지 않는다.</p>
+<p class="lead"><b>격일로 돈다</b> — 팔굽 + AB → 3 km → 팔굽 + AB → …<br><b>팔굽 + AB 는 퇴근 후 집에서 20 분.</b><br><b>3 km 달리기는 그 사이 날 · 실험 중 승온 · 냉각 시간에.</b><br>밀리면 요일 배치가 통째로 하루씩 미끄러진다. 겹쳐서 두 배로 하지 않는다.</p>
 </header>
 <div id="today"></div>
 
@@ -329,43 +329,42 @@ const AB=[
  ['데드버그',2,'10/쪽','천천히']
 ];
 // 요일 배치 — 팔굽 월·수·금 + 토(보강) / 달리기 화·목 (토는 선택)
-// 퇴근 후 집에서 한다. 실험실에선 못 한다.
-const SCHED={1:1,3:2,5:3};            // 팔굽 + AB · 월 · 수 · 금
-const RUNSCHED={};                    // 달리기는 요일 고정 안 함
-const RUNGOAL=2;                      // 승온 · 냉각 중에 나갔다 온다 · 주 2 회
+// 팔굽 + AB 는 퇴근 후 집에서. 달리기는 실험 중 승온 · 냉각 시간에.
 function puSets(day){                 // day : 1·2·3 (0 = 보강 → 없음)
   if(!day)return null;
   const wk=Math.min(PU.length,Math.max(1,CFG.wk));
   return PU[Math.min(PU.length-1,(wk-1)*3+(day-1))][CFG.lv];
 }
-// ── 밀림 : 요일 배치가 통째로 하루씩 미끄러진다 ──────
-// 월·수·금·토 → (하루 밀리면) 화·목·토·일 → (또 밀리면) 수·금·일·월 …
-// 48 시간 간격은 그대로 유지된다. 밀린 것을 다음 날에 겹쳐 넣지 않는다.
-function off(){return (CFG.off||0)%7;}
-function wd(k){return (dOf(k).getDay()-off()+7)%7;}   // 미끄러진 뒤의 요일
-function planOf(k){
-  const w=wd(k);
-  return (SCHED[w]!==undefined)?SCHED[w]:null;        // null = 팔굽 없는 날
+// ── 격일 사이클 ────────────────────────────────
+// 기준일부터 하루 걸러 : 팔굽+AB → 3 km 달리기 → 팔굽+AB → …
+// 팔굽 사이가 항상 48 시간이라 회복 간격이 지켜지고, 그 사이 날은 달리기다.
+// 팔굽 날을 건너뛰면 사이클 전체가 하루 미끄러진다 (겹쳐서 두 배로 하지 않는다).
+const ANCHOR='2026-09-01';
+function idxOf(k){
+  return Math.round((dOf(k)-dOf(ANCHOR))/86400000)-(CFG.off||0);
 }
+function planOf(k){                 // 1·2·3 = 푸시업 Day · null = 팔굽 없는 날
+  const i=idxOf(k);
+  if(i<0||i%2!==0)return null;
+  return ((i/2)%3)+1;
+}
+function isRun(k){const i=idxOf(k);return i>0&&i%2===1;}
 function labelOf(k){
-  const p=planOf(k), rs=RUNSCHED[wd(k)];
-  const a=[];
-  if(p!==null)a.push(p?'푸시업 Day '+p:'보강 · AB');
-  if(rs)a.push(rs===2?'3 km 달리기 (선택)':'3 km 달리기');
-  if(!a.length)return {t:'휴식',rest:true};
-  return {t:a.join('　·　'),rest:false};
+  const pu=planOf(k);
+  if(pu!==null)return {t:'푸시업 Day '+pu+'　·　AB 슬라이드',rest:false};
+  if(isRun(k))return {t:'3 km 달리기',rest:false};
+  return {t:'휴식',rest:true};
 }
 function repsOf(k){return ((DB[k]||{}).pu||[]).reduce((a,b)=>a+(+b||0),0);}
 function absOf(k){return Object.values((DB[k]||{}).ab||{})
   .reduce((a,b)=>a+(+b||0),0);}
 function kmOf(k){return RUN.filter(r=>r.d===k).reduce((a,b)=>a+(+b.km||0),0);}
 function didAny(k){return repsOf(k)>0||absOf(k)>0||kmOf(k)>0;}
-// 마지막으로 본 날 다음날부터 어제까지 훑어서, 안 한 운동일 수만큼 민다.
-// 하루 밀 때마다 그 뒤 요일이 다시 계산되므로 자연스럽게 한 칸씩 이동한다.
+// 지나간 팔굽 날 중 아무것도 안 한 날 수만큼 사이클을 민다.
+// 달리기 날을 건너뛴 것으로는 밀지 않는다 — 그건 그냥 그 주 횟수가 줄 뿐이다.
 function catchUp(){
-  const last=CFG.seen;
-  if(!last){CFG.seen=KEY;saveC();return 0;}
-  let n=0, k=shift(last,1), guard=0;
+  if(!CFG.seen){CFG.seen=KEY;saveC();return 0;}
+  let n=0,k=shift(CFG.seen,1),guard=0;
   while(k<KEY&&guard++<400){
     if(planOf(k)!==null&&!didAny(k)&&!(DB[k]||{}).skip){
       CFG.off=(CFG.off||0)+1;n++;
@@ -413,27 +412,31 @@ function overview(){
   el('kBurn').textContent=Math.round(3.8*3.5*PROF.wt/200*min)+
     Math.round(kmOf(KEY)*PROF.wt*1.036);
   el('wkinfo').textContent=LV[CFG.lv]+' · '+CFG.wk+'주차'+
-    (off()?'　·　'+CFG.off+'일 밀림':'');
+    ((CFG.off||0)?'　·　'+CFG.off+'일 밀림':'');
   carryBox();
 }
-// ── 밀림 안내 ────────────────────────────────
+// ── 사이클 안내 ──────────────────────────────
 function carryBox(){
-  const box=el('carrybox'), o=off();
-  const base=['월','수','금'], now=base.map(x=>
-    DAYS[(DAYS.indexOf(x)+o)%7]);
-  if(!o){box.innerHTML='';return;}
-  box.innerHTML='<div class="carry"><b>'+(CFG.off)+'일 밀렸다 — 요일 배치를 통째로 '+
-    '그만큼 뒤로 옮겼다.</b> 밀린 것을 다음 날에 겹쳐 넣지 않는다. '+
-    '팔굽 사이 48 시간 간격이 유지돼야 해서다.'+
-    '<div class="ogm" style="margin-top:7px;font-size:12.5px">'+
-    '푸시업 <b>'+base.join(' · ')+'</b> → <b>'+now.join(' · ')+'</b>'+
-    '</div>'+
+  const box=el('carrybox'), o=CFG.off||0;
+  const nx=[0,1,2,3].map(i=>{
+    const k=shift(KEY,i), L=labelOf(k), d=dOf(k);
+    return DAYS[d.getDay()]+' '+(L.rest?'휴식':
+      (planOf(k)!==null?'팔굽 Day '+planOf(k):'3 km'));
+  }).join('　→　');
+  box.innerHTML='<div class="carry" style="background:#f8fafc;'+
+    'border-color:var(--line)">'+
+    '<b>격일로 돈다.</b> 팔굽+AB 하고 그 다음 날 3 km, 다시 팔굽+AB. '+
+    '팔굽 사이가 48 시간이라 회복 간격이 지켜진다.'+
+    (o?' 지금까지 <b>'+o+'일</b> 밀렸다 — 사이클 전체가 그만큼 옮겨졌다.':'')+
+    '<div class="ogm" style="margin-top:7px;font-size:12.5px">'+nx+'</div>'+
     '<div class="row"><button class="b g" id="undoslide">하루 당기기</button>'+
-    '<button class="b g" id="resetslide">원래 요일로 (월·수·금)</button>'+
+    '<button class="b g" id="pushslide">하루 밀기</button>'+
+    (o?'<button class="b g" id="resetslide">기준으로 되돌리기</button>':'')+
     '</div></div>';
-  el('undoslide').onclick=()=>{CFG.off=Math.max(0,(CFG.off||0)-1);
-    saveC();render();};
-  el('resetslide').onclick=()=>{CFG.off=0;saveC();render();};
+  el('undoslide').onclick=()=>{CFG.off=(CFG.off||0)-1;saveC();render();};
+  el('pushslide').onclick=()=>{CFG.off=(CFG.off||0)+1;saveC();render();};
+  const rs=el('resetslide');
+  if(rs)rs.onclick=()=>{CFG.off=0;saveC();render();};
 }
 
 // ── 단계 · 주차 ───────────────────────────────
@@ -520,9 +523,9 @@ function renderPU(){
   let tip;
   if(!sets&&p===null){
     tip='<b>왜 쉬나</b> — 같은 부위는 48 시간이 필요하다. '+
-      '월·수·금 배치가 그 간격을 지키게 되어 있다. '+
-      '달리기는 실험 중 승온 · 냉각 시간에 넣는다 — 요일은 없다.';
-  }else if(off()){
+      '격일 배치가 그 간격을 지키게 되어 있다. '+
+      '오늘은 3 km 달리기 날이다 — 승온 · 냉각 중에 나갔다 온다.';
+  }else if(CFG.off||0){
     tip='<b>'+CFG.off+'일 밀려서 요일이 그만큼 옮겨졌다.</b> '+
       '겹쳐서 두 배로 하지 마라 — 회복이 안 된 근육에 또 넣으면 그냥 다친다. '+
       '주 3 회만 유지되면 프로그램은 그대로 간다.';
@@ -571,12 +574,13 @@ function runBox(){
   el('runwk').innerHTML=ks.map(k=>{
     const w=dOf(k).getDay(),m=kmOf(k);
     return '<div class="rdot'+(m?' run':'')+(k===KEY?' today':'')+'">'+
-      DAYS[w]+(m?' '+m.toFixed(1):'')+'</div>';
+      DAYS[w]+(m?' '+m.toFixed(1):(isRun(k)?' ◦':''))+'</div>';
   }).join('');
   const wk=ks.reduce((a,k)=>a+kmOf(k),0);
   const cnt=ks.filter(k=>kmOf(k)>0).length;
-  el('rgoal').textContent='이번 주 '+cnt+' / '+RUNGOAL+' 회'+
-    (cnt>=RUNGOAL?'　달성':'')+'　·　승온 · 냉각 중에 나갔다 온다';
+  const goal=ks.filter(k=>isRun(k)).length;
+  el('rgoal').textContent='이번 주 '+cnt+' / '+goal+' 회'+
+    (goal&&cnt>=goal?'　다 했다':'')+'　·　승온 · 냉각 중에 나갔다 온다';
   el('rWk').textContent=wk.toFixed(1);
   el('rTot').textContent=RUN.reduce((a,b)=>a+(+b.km||0),0).toFixed(1);
   const th=RUN.filter(r=>r.km>=2.9&&r.km<=3.2&&r.min>0);
@@ -595,7 +599,7 @@ function runBox(){
     saveR();render();
   });
   const best=th.length?Math.min(...th.map(r=>r.min)):0;
-  el('rtip').innerHTML=cnt>=RUNGOAL
+  el('rtip').innerHTML=(goal&&cnt>=goal)
     ? '<b>이번 주 목표 채웠다.</b> 더 하는 것보다 다음 주에도 두 번 하는 게 낫다.'
     : (best&&best<=18
       ? '<b>3 km 18 분 아래.</b> 페이스는 충분하다. 이제 횟수를 늘려라.'
