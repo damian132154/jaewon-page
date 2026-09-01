@@ -191,8 +191,11 @@ button.r{background:var(--red)}
     <span class="cs" style="margin-left:0">단계 <b>11 ~ 20개</b> 고정 ·
       한 번에 최대 몇 개 되나 기준</span>
   </div>
-  <div class="row" style="margin-bottom:12px">
+  <div class="row" style="margin-bottom:8px">
     <div class="seg" id="wkseg"></div>
+  </div>
+  <div class="row" style="margin-bottom:12px">
+    <div class="seg" id="dayseg"></div>
   </div>
   <div class="bar" id="bar"><i style="width:0%"></i></div>
   <div id="puBody"></div>
@@ -344,6 +347,8 @@ function idxOf(k){
   return Math.round((dOf(k)-dOf(ANCHOR))/86400000)-(CFG.off||0);
 }
 function planOf(k){                 // 1·2·3 = 푸시업 Day · null = 팔굽 없는 날
+  const r=DB[k]||{};
+  if(r.day)return r.day;            // 직접 고른 것이 우선
   const i=idxOf(k);
   if(i<0||i%2!==0)return null;
   return ((i/2)%3)+1;
@@ -440,6 +445,16 @@ function carryBox(){
 }
 
 // ── 단계 · 주차 ───────────────────────────────
+[['자동',0],['Day 1',1],['Day 2',2],['Day 3',3]].forEach(([n,v])=>{
+  const b=document.createElement('button');
+  b.className='sg';b.textContent=n;b.dataset.day=v;
+  b.onclick=()=>{
+    const r=DB[viewKey]||(DB[viewKey]={});
+    if(v)r.day=v; else delete r.day;
+    save();render();
+  };
+  el('dayseg').appendChild(b);
+});
 for(let w=1;w<=6;w++){
   const b=document.createElement('button');
   b.className='sg';b.textContent=w+'주차';b.dataset.wk=w;
@@ -451,13 +466,17 @@ for(let w=1;w<=6;w++){
 function renderPU(){
   el('wkseg').querySelectorAll('.sg').forEach(b=>
     b.classList.toggle('on',+b.dataset.wk===CFG.wk));
+  const md=(DB[viewKey]||{}).day||0;
+  el('dayseg').querySelectorAll('.sg').forEach(b=>
+    b.classList.toggle('on',+b.dataset.day===md));
   const k=viewKey, r=DB[k]||(DB[k]={}), p=planOf(k);
   const d=dOf(k), isToday=(k===KEY);
   const when=isToday?'오늘':(d.getMonth()+1)+'/'+d.getDate()+' '+
     DAYS[d.getDay()]+'요일';
   const sets=puSets(p);
   el('puTitle').textContent='팔굽혀펴기 — '+when+
-    (p===null?' · 쉬는 날':(p?' · Day '+p:' · 보강일'));
+    (p===null?' · 쉬는 날':' · Day '+p)+
+    ((DB[k]||{}).day?' (직접 고름)':'');
   r.pu=r.pu||[];
   let html='',done=0,total=0;
   if(!sets){
