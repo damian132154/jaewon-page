@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>세미나 메모</title>
+<style>
+:root{--bg:#f7f8fb;--card:#fff;--ink:#151922;--ink2:#5b6472;--ink3:#98a0ac;
+--line:#e6e9ee;--accent:#475569;--green:#0f766e;--blue:#2563eb}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);
+ font-family:"맑은 고딕",Malgun Gothic,system-ui,sans-serif;
+ background:radial-gradient(880px 400px at 50% -12%,#eef1f6 0%,transparent 60%),
+ var(--bg)}
+.wrap{max-width:860px;margin:0 auto;padding:44px 20px 90px}
+header{margin-bottom:20px}
+.kicker{font-size:12px;color:var(--ink3)}
+h1{margin:7px 0 5px;font-size:28px;font-weight:800;letter-spacing:-.02em}
+h1 b{color:var(--accent)}
+.lead{margin:0;color:var(--ink2);font-size:13px}
+.new{background:#fff;border:1px solid var(--line);border-radius:15px;
+ padding:18px 20px;margin:22px 0 20px;box-shadow:0 1px 3px rgba(21,25,34,.05);
+ border-top:3px solid var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+.row input[type=text]{flex:1;min-width:150px}
+input[type=text],input[type=date],textarea{border:1px solid var(--line);
+ border-radius:10px;padding:10px 13px;font-size:13.5px;font-family:inherit;
+ outline:none;color:var(--ink);line-height:1.6}
+input:focus,textarea:focus{border-color:var(--accent)}
+textarea{width:100%;resize:vertical}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}
+.tg{border:1px solid var(--line);background:#fff;color:var(--ink2);
+ padding:5px 13px;border-radius:20px;font-size:12px;cursor:pointer;
+ font-family:inherit}
+.tg.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.act{display:flex;gap:9px;align-items:center;margin-top:10px}
+.act button{padding:10px 22px;border:none;border-radius:10px;
+ background:var(--accent);color:#fff;font-size:13.5px;font-weight:700;
+ cursor:pointer;font-family:inherit}
+.act .ghost{background:#fff;color:var(--ink2);border:1px solid var(--line)}
+#q{width:100%;max-width:400px;margin:6px 0 18px;padding:11px 17px;
+ border:1px solid var(--line);border-radius:24px;font-size:13.5px;
+ font-family:inherit;outline:none}
+.note{background:#fff;border:1px solid var(--line);border-radius:13px;
+ padding:15px 18px;margin-bottom:11px;box-shadow:0 1px 3px rgba(21,25,34,.04)}
+.note.hide{display:none}
+.nh{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.nt{font-size:15px;font-weight:700}
+.nd{font-size:11.5px;color:var(--ink3);font-family:ui-monospace,Consolas,
+ monospace}
+.nw{font-size:11.5px;color:var(--ink2)}
+.ntag{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;
+ background:#eef1f6;color:var(--accent)}
+.nb{margin-top:9px;font-size:13px;color:var(--ink2);line-height:1.7;
+ white-space:pre-wrap}
+.nx{margin-left:auto;border:none;background:none;color:var(--ink3);
+ cursor:pointer;font-size:14px}
+.nx:hover{color:#c0392b}
+.empty{text-align:center;color:var(--ink3);padding:34px;font-size:13px}
+footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:34px;
+ line-height:1.8}
+</style></head><body>
+<div class="wrap">
+<header><div class="kicker">SKKU · IBS 2DQH</div>
+<h1>세미나 <b>메모</b></h1>
+<p class="lead">듣고 바로 적는다. 나중에 검색해서 찾는다.</p></header>
+
+<div class="new">
+  <div class="row">
+    <input type="text" id="title" placeholder="제목 · 발표자 (예: 김OO — 2D 강유전체)">
+    <input type="date" id="date">
+  </div>
+  <div class="tags" id="tags"></div>
+  <textarea id="body" rows="7"
+    placeholder="무슨 얘기였나. 쓸 만한 것. 물어볼 것."></textarea>
+  <div class="act"><button id="add">저장</button>
+    <button class="ghost" id="clear">비우기</button>
+    <span class="nd" id="cnt"></span></div>
+</div>
+
+<input id="q" placeholder="제목 · 내용 · 태그로 검색…" autocomplete="off">
+<div id="list"></div>
+
+<footer>이 브라우저에 저장된다 · 개인 페이지 「도구」 칸에서 열 수 있다</footer>
+</div>
+<script>
+const LS='seminar_notes';
+const TAGS=['세미나','그룹미팅','학회','논문 발표','교수님 코멘트','아이디어'];
+let DB=[];
+try{DB=JSON.parse(localStorage.getItem(LS)||'[]');}catch(e){DB=[];}
+let picked=new Set();
+
+const tagBox=document.getElementById('tags');
+TAGS.forEach(t=>{
+  const b=document.createElement('button');
+  b.className='tg';b.textContent=t;
+  b.onclick=()=>{
+    if(picked.has(t))picked.delete(t);else picked.add(t);
+    b.classList.toggle('on',picked.has(t));
+  };
+  tagBox.appendChild(b);
+});
+const dt=document.getElementById('date');
+dt.value=new Date().toISOString().slice(0,10);
+
+function esc(s){const d=document.createElement('div');d.textContent=s;
+  return d.innerHTML;}
+function save(){localStorage.setItem(LS,JSON.stringify(DB));draw();}
+function draw(){
+  const box=document.getElementById('list');
+  document.getElementById('cnt').textContent=DB.length+' 개 저장됨';
+  if(!DB.length){box.innerHTML=
+    '<div class="empty">아직 없다. 위에 적으면 여기 쌓인다.</div>';return;}
+  box.innerHTML=DB.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))
+   .map(n=>{
+    const tg=(n.tags||[]).map(t=>'<span class="ntag">'+esc(t)+'</span>').join(' ');
+    return '<div class="note" data-q="'+
+      esc(((n.title||'')+' '+(n.body||'')+' '+(n.tags||[]).join(' ')).toLowerCase())+
+      '"><div class="nh"><span class="nt">'+esc(n.title||'제목 없음')+'</span>'+
+      '<span class="nd">'+esc(n.date||'')+'</span>'+tg+
+      '<button class="nx" data-id="'+n.id+'">✕</button></div>'+
+      (n.body?'<div class="nb">'+esc(n.body)+'</div>':'')+'</div>';
+  }).join('');
+  box.querySelectorAll('.nx').forEach(b=>b.onclick=()=>{
+    DB=DB.filter(x=>String(x.id)!==b.dataset.id);save();
+  });
+}
+document.getElementById('add').onclick=()=>{
+  const ti=document.getElementById('title').value.trim();
+  const bo=document.getElementById('body').value.trim();
+  if(!ti&&!bo)return;
+  DB.push({id:Date.now(),title:ti,body:bo,date:dt.value,
+           tags:[...picked]});
+  document.getElementById('title').value='';
+  document.getElementById('body').value='';
+  picked.clear();
+  tagBox.querySelectorAll('.tg').forEach(b=>b.classList.remove('on'));
+  save();
+};
+document.getElementById('clear').onclick=()=>{
+  document.getElementById('title').value='';
+  document.getElementById('body').value='';
+  picked.clear();
+  tagBox.querySelectorAll('.tg').forEach(b=>b.classList.remove('on'));
+};
+document.getElementById('q').addEventListener('input',e=>{
+  const s=e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.note').forEach(n=>
+    n.classList.toggle('hide',!!s&&!n.dataset.q.includes(s)));
+});
+draw();
+</script>
+</body></html>

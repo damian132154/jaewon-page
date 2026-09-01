@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>운동 기록</title>
+<style>
+:root{--bg:#f7f9fb;--card:#fff;--ink:#151922;--ink2:#5b6472;--ink3:#98a0ac;
+--line:#e4e9ee;--accent:#1d4ed8;--green:#0f766e;--warm:#c2410c;--red:#dc2626}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);
+ font-family:"맑은 고딕",Malgun Gothic,system-ui,sans-serif;
+ background:radial-gradient(900px 420px at 50% -12%,#e4ecff 0%,transparent 62%),
+ var(--bg)}
+.wrap{max-width:880px;margin:0 auto;padding:38px 20px 90px}
+header{text-align:center;margin-bottom:6px}
+h1{margin:0 0 5px;font-size:29px;font-weight:800;letter-spacing:-.02em}
+h1 b{color:var(--accent)}
+.lead{margin:0;color:var(--ink2);font-size:13px}
+#today{text-align:center;font-size:13.5px;color:var(--ink2);margin:8px 0 20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:15px;
+ padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(21,25,34,.05);
+ border-top:3px solid var(--c,var(--accent))}
+.ch{display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap}
+.ci{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;
+ justify-content:center;font-size:15px;color:var(--c,var(--accent));
+ background:color-mix(in srgb,var(--c,#1d4ed8) 12%,#fff)}
+.ct{font-size:14.5px;font-weight:700}
+.cs{font-size:11.5px;color:var(--ink3);margin-left:auto}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.sg{border:1px solid var(--line);background:#fff;color:var(--ink2);
+ padding:7px 14px;border-radius:20px;font-size:12.5px;cursor:pointer;
+ font-family:inherit;font-weight:700}
+.sg.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.week{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.wd{flex:1;min-width:56px;border:1px solid var(--line);background:#fff;
+ border-radius:11px;padding:9px 4px;text-align:center;cursor:pointer;
+ font-family:inherit}
+.wd .dn{font-size:12.5px;font-weight:700;color:var(--ink2)}
+.wd .ds{font-size:10px;color:var(--ink3);margin-top:3px;line-height:1.35}
+.wd.on{border-color:var(--accent);background:#eef3ff}
+.wd.on .dn{color:var(--accent)}
+.wd.rest{background:#fafbfc}
+.wd.done{border-color:var(--green);background:#eefbf7}
+.wd.done .dn{color:var(--green)}
+.wd.miss{border-color:#f3c6c6;background:#fff7f7}
+.wd.miss .dn{color:var(--red)}
+.wd.today{box-shadow:0 0 0 2px rgba(29,78,216,.18)}
+.sets{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.st{border:1px solid var(--line);background:#fff;border-radius:12px;
+ padding:11px 0;width:66px;text-align:center;cursor:pointer;font-family:inherit}
+.st .sn{font-size:10.5px;color:var(--ink3)}
+.st .sv{font-size:19px;font-weight:800;color:var(--ink);letter-spacing:-.02em}
+.st.on{background:var(--green);border-color:var(--green)}
+.st.on .sv,.st.on .sn{color:#fff}
+.bar{height:8px;background:#eef1f5;border-radius:20px;overflow:hidden;
+ margin:13px 0 6px}
+.bar i{display:block;height:100%;background:var(--green);border-radius:20px;
+ transition:.25s}
+.big{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px}
+.kpi{flex:1;min-width:92px;background:#fff;border:1px solid var(--line);
+ border-radius:13px;padding:12px 8px;text-align:center}
+.kv{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.kl{font-size:10.5px;color:var(--ink2);margin-top:3px}
+.runwk{display:flex;gap:6px;margin-bottom:13px}
+.rdot{flex:1;height:36px;border-radius:9px;border:1px solid var(--line);
+ background:#fff;display:flex;align-items:center;justify-content:center;
+ font-size:11px;color:var(--ink3);font-weight:700}
+.rdot.run{background:#0891b2;color:#fff;border-color:#0891b2}
+.rdot.today{box-shadow:0 0 0 2px rgba(8,145,178,.2)}
+.runin{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;
+ background:#f0fbfd;border:1px solid #cfeef5;border-radius:13px;padding:14px 16px}
+.rl{display:flex;flex-direction:column;gap:4px;font-size:11.5px;
+ color:var(--ink2);font-weight:700}
+.rl input{width:86px;font-size:19px;font-weight:800;text-align:center;
+ padding:8px 6px;border:1px solid #cfeef5}
+.rl span{font-size:10.5px;color:var(--ink3);text-align:center}
+.rpace{font-size:19px;font-weight:800;color:#0891b2;min-width:100px;
+ padding-bottom:9px}
+.rbtn{margin-left:auto;padding:13px 24px;border:none;border-radius:11px;
+ background:#0891b2;color:#fff;font-size:14px;font-weight:800;cursor:pointer;
+ font-family:inherit;box-shadow:0 3px 10px rgba(8,145,178,.25)}
+.rbtn:hover{filter:brightness(1.06)}
+.rest{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+#rtime{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;
+ min-width:74px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select{border:1px solid var(--line);border-radius:9px;padding:9px 11px;
+ font-size:13.5px;font-family:inherit;outline:none;color:var(--ink)}
+input:focus{border-color:var(--accent)}
+button.b{padding:9px 18px;border:none;border-radius:9px;background:var(--accent);
+ color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+button.g{background:#fff;color:var(--ink2);border:1px solid var(--line)}
+.ex{border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+ margin-bottom:8px}
+.ex.done{border-color:var(--green);background:#f6fdfb}
+.eh{display:flex;align-items:center;gap:9px}
+.en{font-size:13.5px;font-weight:700;flex:1}
+.et{font-size:11.5px;color:var(--ink3)}
+.mini{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
+.mb{border:1px solid var(--line);background:#fff;border-radius:8px;
+ padding:6px 0;width:44px;text-align:center;font-size:12.5px;font-weight:700;
+ color:var(--ink2);cursor:pointer;font-family:inherit}
+.mb.on{background:var(--green);color:#fff;border-color:var(--green)}
+.exnote{font-size:11.5px;color:var(--ink3);margin-top:7px;line-height:1.6}
+.hist{display:flex;flex-direction:column;gap:6px}
+.hr{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink2);
+ padding:8px 12px;border:1px solid var(--line);border-radius:9px}
+.hr .hd{font-family:ui-monospace,Consolas,monospace;font-weight:700;
+ color:var(--ink);min-width:44px}
+.hr .hn{flex:1}
+.hr .hv{font-weight:700;color:var(--green)}
+.tip{font-size:11.5px;color:var(--ink3);line-height:1.7;margin-top:9px}
+.warn{background:#fff8ec;border-left:3px solid var(--warm);padding:10px 13px;
+ border-radius:8px;font-size:12px;color:var(--ink2);line-height:1.7;
+ margin-top:10px}
+.warn b{color:var(--ink)}
+footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:32px;
+ line-height:1.8}
+.hx{margin-left:6px;border:none;background:none;color:var(--ink3);
+ cursor:pointer;font-size:12px;font-family:inherit}
+.hx:hover{color:var(--red)}
+/* 이번 주 개요 표 */
+.ov{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ovr{display:flex;align-items:center;gap:10px;padding:10px 13px;
+ border-top:1px solid var(--line);cursor:pointer;background:#fff}
+.ov .ovr:first-child{border-top:none}
+.ovr:hover{background:#f8fafc}
+.ovd{width:26px;font-size:13px;font-weight:800;color:var(--ink2)}
+.ovw{flex:1;font-size:13px;color:var(--ink)}
+.ovw i{font-style:normal;color:var(--ink3);font-size:11.5px;margin-left:6px}
+.ovs{font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;
+ background:#f1f4f8;color:var(--ink3);white-space:nowrap}
+.ovs.done{background:#e6f7f2;color:var(--green)}
+.ovs.miss{background:#fdeeee;color:var(--red)}
+.ovs.now{background:#e9f0ff;color:var(--accent)}
+.ovr.rest .ovw{color:var(--ink3)}
+.ovr.sel{background:#eef3ff}
+.ovr.tod{box-shadow:inset 3px 0 0 var(--accent)}
+.carry{background:#fff7f7;border:1px solid #f3c6c6;border-radius:11px;
+ padding:11px 14px;margin-top:10px;font-size:12.5px;color:var(--ink2);
+ line-height:1.7}
+.carry b{color:var(--red)}
+.carry .row{margin-top:8px}
+button.r{background:var(--red)}
+/* 달력 */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cw{font-size:10.5px;color:var(--ink3);text-align:center;font-weight:700;
+ padding-bottom:2px}
+.cd{aspect-ratio:1/1;border:1px solid var(--line);border-radius:9px;
+ background:#fff;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:1px;cursor:pointer;font-family:inherit;padding:0}
+.cd .cn{font-size:11.5px;font-weight:700;color:var(--ink2)}
+.cd .cm{font-size:9px;color:var(--ink3);line-height:1.2}
+.cd.blank{border:none;background:none;cursor:default}
+.cd.has{border-color:var(--green);background:#f0fbf8}
+.cd.has .cn{color:var(--green)}
+.cd.run{border-color:#0891b2;background:#f0fbfd}
+.cd.both{border-color:var(--green);background:#eafaf5}
+.cd.sel{box-shadow:0 0 0 2px rgba(29,78,216,.25);border-color:var(--accent)}
+.cd.tod .cn{text-decoration:underline}
+.calh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.calh .m{font-size:14px;font-weight:800;min-width:104px;text-align:center}
+.dayd{margin-top:12px;border:1px solid var(--line);border-radius:11px;
+ padding:12px 14px;font-size:12.5px;color:var(--ink2);line-height:1.8}
+.dayd b{color:var(--ink)}
+</style></head><body>
+<div class="wrap">
+<header><h1>운동 <b>기록</b></h1>
+<p class="lead">푸시업 6주 프로그램 · AB 슬라이드 · 3 km 달리기. 밀리면 다음 날로.</p>
+</header>
+<div id="today"></div>
+
+<!-- ── 이번 주 개요 ───────────────────────────── -->
+<div class="card" style="--c:#1d4ed8">
+  <div class="ch"><div class="ci">▦</div><div class="ct">이번 주</div>
+    <span class="cs" id="wkinfo"></span></div>
+  <div class="ov" id="ov"></div>
+  <div id="carrybox"></div>
+  <div class="big" style="margin-top:12px">
+    <div class="kpi"><div class="kv" id="kDay">0</div><div class="kl">이번 주 완료</div></div>
+    <div class="kpi"><div class="kv" id="kRep">0</div><div class="kl">이번 주 푸시업</div></div>
+    <div class="kpi"><div class="kv" id="kRun">0</div><div class="kl">이번 주 km</div></div>
+    <div class="kpi"><div class="kv" id="kBurn">0</div><div class="kl">오늘 소모 kcal</div></div>
+  </div>
+</div>
+
+<!-- ── 팔굽혀펴기 ─────────────────────────────── -->
+<div class="card" style="--c:#0f766e">
+  <div class="ch"><div class="ci">◉</div><div class="ct" id="puTitle">팔굽혀펴기</div>
+    <span class="cs" id="puProg"></span></div>
+  <div class="row" style="margin-bottom:10px">
+    <div class="seg" id="lvseg"></div>
+  </div>
+  <div class="row" style="margin-bottom:12px">
+    <div class="seg" id="wkseg"></div>
+  </div>
+  <div class="bar" id="bar"><i style="width:0%"></i></div>
+  <div id="puBody"></div>
+  <div class="rest" id="restbox">
+    <button class="b" id="rstart">휴식 90 초</button>
+    <span id="rtime">—</span>
+    <span class="cs" style="margin-left:0">세트 사이 90 초. 마지막 세트는 가능한 만큼 더.</span>
+  </div>
+  <div class="warn" id="tipbox"></div>
+</div>
+
+<!-- ── AB 슬라이드 ────────────────────────────── -->
+<div class="card" style="--c:#7c3aed">
+  <div class="ch"><div class="ci">▽</div><div class="ct">AB 슬라이드 · 코어</div>
+    <span class="cs" id="abProg"></span></div>
+  <div id="abBody"></div>
+  <div class="warn">
+    <b>허리가 꺼지는 순간 멈춘다.</b> 복근이 아니라 허리로 버티면 다친다.
+    무릎 대고 하는 것이 정석이고, 20 개가 편해지면 그때 발끝으로 넘어간다.
+  </div>
+</div>
+
+<!-- ── 3 km 달리기 ────────────────────────────── -->
+<div class="card" style="--c:#0891b2">
+  <div class="ch"><div class="ci">▷</div><div class="ct">3 km 달리기</div>
+    <span class="cs">화 · 목 · (토) — 팔굽 쉬는 날에 넣는다</span></div>
+  <div class="runwk" id="runwk"></div>
+  <div class="runin">
+    <label class="rl">거리 <input type="number" id="rkm" step="0.1" value="3">
+      <span>km</span></label>
+    <label class="rl">시간 <input type="number" id="rmin" placeholder="0">
+      <span>분</span></label>
+    <div class="rpace" id="rpace">—</div>
+    <button class="rbtn" id="rAdd">달렸다 기록</button>
+  </div>
+  <div class="big" style="margin-top:11px">
+    <div class="kpi"><div class="kv" id="rWk">0</div><div class="kl">이번 주 km</div></div>
+    <div class="kpi"><div class="kv" id="rBest">—</div><div class="kl">3 km 최고</div></div>
+    <div class="kpi"><div class="kv" id="rTot">0</div><div class="kl">누적 km</div></div>
+  </div>
+  <div class="hist" id="rHist" style="margin-top:9px"></div>
+  <div class="warn" id="rtip"></div>
+</div>
+
+<!-- ── 최대 개수 ──────────────────────────────── -->
+<div class="card" style="--c:#c2410c">
+  <div class="ch"><div class="ci">△</div><div class="ct">최대 개수 테스트</div>
+    <span class="cs">2 주에 한 번</span></div>
+  <div class="row">
+    <select id="mxEx">
+      <option>푸시업</option><option>AB 슬라이드</option><option>플랭크(초)</option>
+      <option>레그레이즈</option>
+    </select>
+    <input type="number" id="mxN" placeholder="개수" style="width:92px">
+    <button class="b" id="mxAdd">기록</button>
+  </div>
+  <div class="hist" id="mxHist" style="margin-top:11px"></div>
+</div>
+
+<!-- ── 날짜별 기록 ────────────────────────────── -->
+<div class="card" style="--c:#475569">
+  <div class="ch"><div class="ci">▤</div><div class="ct">날짜별 기록</div>
+    <span class="cs" id="calinfo"></span></div>
+  <div class="calh">
+    <button class="b g" id="mPrev">‹</button>
+    <div class="m" id="mLabel"></div>
+    <button class="b g" id="mNext">›</button>
+    <button class="b g" id="mToday" style="margin-left:auto">오늘</button>
+  </div>
+  <div class="cal" id="cal"></div>
+  <div class="dayd" id="dayd"></div>
+</div>
+
+<footer>이 브라우저에 저장된다 · 키 · 몸무게는 식단 페이지 값을 쓴다</footer>
+</div>
+<script>
+// ── 저장소 ────────────────────────────────────
+const LS='workout_log', LSM='workout_max', LSC='workout_cfg', LSR='run_log';
+const LSget=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const LSset=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+let DB={}, MX=[], RUN=[], CFG={lv:2,wk:1};
+try{DB=JSON.parse(LSget(LS)||'{}');}catch(e){}
+try{MX=JSON.parse(LSget(LSM)||'[]');}catch(e){}
+try{RUN=JSON.parse(LSget(LSR)||'[]');}catch(e){}
+try{CFG=Object.assign(CFG,JSON.parse(LSget(LSC)||'{}'));}catch(e){}
+let PROF={ht:175,wt:75};
+try{PROF=Object.assign(PROF,JSON.parse(LSget('diet_profile')||'{}'));}catch(e){}
+function el(i){return document.getElementById(i);}
+function save(){LSset(LS,JSON.stringify(DB));}
+function saveC(){LSset(LSC,JSON.stringify(CFG));}
+function saveR(){LSset(LSR,JSON.stringify(RUN));}
+
+// ── 날짜 ──────────────────────────────────────
+const DAYS=['일','월','화','수','목','금','토'];
+function ymd(d){return d.getFullYear()+'-'+
+  String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+const TODAY=new Date(), KEY=ymd(TODAY);
+function dOf(k){return new Date(k+'T00:00');}
+function shift(k,n){const d=dOf(k);d.setDate(d.getDate()+n);return ymd(d);}
+// 이번 주 (월요일 시작)
+function weekKeys(base){
+  const d=dOf(base||KEY);
+  const off=(d.getDay()+6)%7;          // 월=0
+  d.setDate(d.getDate()-off);
+  return Array.from({length:7},(_,i)=>{
+    const x=new Date(d);x.setDate(d.getDate()+i);return ymd(x);});
+}
+
+// ── 프로그램 ──────────────────────────────────
+const LV=['5개 미만','6 ~ 10개','11 ~ 20개'];
+const PU=[
+ [[2,3,2,2,3],[6,6,4,4,5],[10,12,7,7,9]],
+ [[5,6,4,4,7],[10,12,9,9,13],[14,16,12,12,17]],
+ [[5,7,5,5,8],[12,13,10,10,15],[16,17,14,14,20]],
+ [[6,8,6,6,9],[14,14,11,11,16],[18,19,15,15,22]],
+ [[7,9,6,6,10],[15,16,12,12,18],[20,22,16,16,25]],
+ [[8,10,7,7,12],[17,18,13,13,20],[22,24,18,18,28]],
+ [[9,11,8,8,13],[18,20,14,14,22],[24,26,20,20,30]],
+ [[10,12,9,9,15],[20,22,16,16,25],[26,28,22,22,33]],
+ [[11,13,10,10,16],[22,24,17,17,27],[28,30,24,24,36]],
+ [[12,15,11,11,18],[24,26,19,19,30],[30,33,26,26,40]],
+ [[13,16,12,12,20],[26,28,21,21,33],[33,36,28,28,44]],
+ [[14,18,13,13,22],[28,30,23,23,36],[36,40,30,30,48]],
+ [[16,19,14,14,24],[30,33,25,25,40],[40,44,33,33,53]],
+ [[17,21,16,16,26],[33,36,27,27,44],[44,48,36,36,58]],
+ [[18,22,17,17,28],[36,40,30,30,48],[48,52,40,40,64]],
+ [[20,24,18,18,30],[40,44,33,33,53],[52,56,44,44,70]],
+ [[22,26,20,20,33],[44,48,36,36,58],[56,62,48,48,76]],
+ [[24,28,22,22,36],[48,52,40,40,64],[62,68,52,52,84]]
+];
+const AB=[
+ ['AB 슬라이드 (무릎)',3,'8~12','무릎 대고. 허리 꺼지면 즉시 멈춘다'],
+ ['플랭크',3,'40초','엉덩이 들지 말 것'],
+ ['레그레이즈',3,'12','허리를 바닥에 붙이고'],
+ ['데드버그',2,'10/쪽','천천히']
+];
+// 요일 배치 — 팔굽 월·수·금 + 토(보강) / 달리기 화·목 (토는 선택)
+const SCHED={1:1,3:2,5:3,6:0};        // 0 = 보강일 (AB 위주)
+const RUNSCHED={2:1,4:1,6:2};         // 1 = 계획 · 2 = 선택
+function puSets(day){                 // day : 1·2·3 (0 = 보강 → 없음)
+  if(!day)return null;
+  const wk=Math.min(PU.length,Math.max(1,CFG.wk));
+  return PU[Math.min(PU.length-1,(wk-1)*3+(day-1))][CFG.lv];
+}
+// 그 날짜에 하기로 되어 있는 것 (이월분 포함)
+function planOf(k){
+  const r=DB[k]||{};
+  if(r.carry!==undefined&&r.carry!==null)return r.carry;
+  const w=dOf(k).getDay();
+  return (SCHED[w]!==undefined)?SCHED[w]:null;   // null = 팔굽 없는 날
+}
+function labelOf(k){
+  const p=planOf(k), w=dOf(k).getDay(), rs=RUNSCHED[w];
+  const carried=(DB[k]||{}).carry!==undefined&&(DB[k]||{}).carry!==null;
+  const a=[];
+  if(p!==null)a.push(p?'푸시업 Day '+p:'보강 · AB');
+  if(rs)a.push(rs===2?'3 km 달리기 (선택)':'3 km 달리기');
+  if(!a.length)return {t:'휴식',rest:true,carried:false};
+  return {t:a.join('　·　'),rest:false,carried:carried};
+}
+function repsOf(k){return ((DB[k]||{}).pu||[]).reduce((a,b)=>a+(+b||0),0);}
+function absOf(k){return Object.values((DB[k]||{}).ab||{})
+  .reduce((a,b)=>a+(+b||0),0);}
+function kmOf(k){return RUN.filter(r=>r.d===k).reduce((a,b)=>a+(+b.km||0),0);}
+function didAny(k){return repsOf(k)>0||absOf(k)>0||kmOf(k)>0;}
+// 밀린 날 : 이번 주에서 지난 날인데 계획이 있었고 아무것도 안 한 날
+function missed(){
+  return weekKeys().filter(k=>
+    k<KEY && planOf(k)!==null && !didAny(k) && !(DB[k]||{}).skip);
+}
+
+let viewKey=KEY;
+let calM=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);
+el('today').textContent=TODAY.getFullYear()+'년 '+(TODAY.getMonth()+1)+'월 '+
+  TODAY.getDate()+'일 '+DAYS[TODAY.getDay()]+'요일';
+
+// ── 이번 주 개요 ──────────────────────────────
+function overview(){
+  const ks=weekKeys(), ms=missed();
+  let done=0,reps=0,km=0;
+  el('ov').innerHTML=ks.map(k=>{
+    const L=labelOf(k), d=dOf(k), r=repsOf(k), a=absOf(k), m=kmOf(k);
+    reps+=r;km+=m;
+    const any=didAny(k);
+    if(!L.rest&&any)done++;
+    let cls='ok',txt='예정';
+    if(any){cls='done';txt=(r?r+'개':'')+(m?(r?' · ':'')+m.toFixed(1)+'km':'')||'완료';}
+    else if(ms.includes(k)){cls='miss';txt='밀림';}
+    else if(k===KEY){cls='now';txt='오늘';}
+    else if(k<KEY){cls='';txt='—';}
+    else if(L.rest){cls='';txt='휴식';}
+    return '<div class="ovr'+(L.rest?' rest':'')+(k===viewKey?' sel':'')+
+      (k===KEY?' tod':'')+'" data-k="'+k+'">'+
+      '<div class="ovd">'+DAYS[d.getDay()]+'</div>'+
+      '<div class="ovw">'+L.t+(L.carried?'<i>이월</i>':'')+
+      '<i>'+(d.getMonth()+1)+'/'+d.getDate()+'</i></div>'+
+      '<div class="ovs '+cls+'">'+txt+'</div></div>';
+  }).join('');
+  el('ov').querySelectorAll('.ovr').forEach(x=>x.onclick=()=>{
+    viewKey=x.dataset.k;calM=new Date(dOf(viewKey).getFullYear(),
+      dOf(viewKey).getMonth(),1);render();});
+  el('kDay').textContent=done;
+  el('kRep').textContent=reps;
+  el('kRun').textContent=km.toFixed(1);
+  const min=repsOf(KEY)*3/60;
+  el('kBurn').textContent=Math.round(3.8*3.5*PROF.wt/200*min)+
+    Math.round(kmOf(KEY)*PROF.wt*1.036);
+  el('wkinfo').textContent=LV[CFG.lv]+' · '+CFG.wk+'주차'+
+    (ms.length?'　·　밀린 날 '+ms.length:'');
+  carryBox(ms);
+}
+// ── 밀린 것 이월 ──────────────────────────────
+function carryBox(ms){
+  const box=el('carrybox');
+  const todayPlan=planOf(KEY);
+  if(!ms.length){box.innerHTML='';return;}
+  const opts=ms.map(k=>{
+    const p=planOf(k),d=dOf(k);
+    return '<button class="b r" data-c="'+k+'">'+DAYS[d.getDay()]+
+      '요일 '+(p?'Day '+p:'보강')+' 오늘 하기</button>';
+  }).join('');
+  box.innerHTML='<div class="carry"><b>밀린 날이 '+ms.length+'개 있다.</b> '+
+    '건너뛰지 말고 오늘로 당겨서 하면 프로그램은 그대로 간다. '+
+    (todayPlan!==null?'오늘도 계획이 있으면 오늘 것을 먼저 하고, 남는 날 하나만 당겨라. ':'')+
+    '한 주를 통째로 놓쳤으면 같은 주차를 한 번 더 반복하는 쪽이 낫다.'+
+    '<div class="row">'+opts+
+    '<button class="b g" id="skipall">그냥 넘기기</button></div></div>';
+  box.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{
+    const from=b.dataset.c, p=planOf(from);
+    (DB[KEY]=DB[KEY]||{}).carry=p;      // 오늘 = 밀린 날의 루틴
+    (DB[from]=DB[from]||{}).skip=1;     // 밀린 날은 처리됨으로 표시
+    save();viewKey=KEY;render();
+  });
+  el('skipall').onclick=()=>{
+    ms.forEach(k=>{(DB[k]=DB[k]||{}).skip=1;});save();render();};
+}
+
+// ── 단계 · 주차 ───────────────────────────────
+LV.forEach((n,i)=>{
+  const b=document.createElement('button');
+  b.className='sg';b.textContent=n;b.dataset.lv=i;
+  b.onclick=()=>{CFG.lv=i;saveC();render();};
+  el('lvseg').appendChild(b);
+});
+for(let w=1;w<=6;w++){
+  const b=document.createElement('button');
+  b.className='sg';b.textContent=w+'주차';b.dataset.wk=w;
+  b.onclick=()=>{CFG.wk=w;saveC();render();};
+  el('wkseg').appendChild(b);
+}
+
+// ── 팔굽 · AB ─────────────────────────────────
+function renderPU(){
+  el('lvseg').querySelectorAll('.sg').forEach(b=>
+    b.classList.toggle('on',+b.dataset.lv===CFG.lv));
+  el('wkseg').querySelectorAll('.sg').forEach(b=>
+    b.classList.toggle('on',+b.dataset.wk===CFG.wk));
+  const k=viewKey, r=DB[k]||(DB[k]={}), p=planOf(k);
+  const d=dOf(k), isToday=(k===KEY);
+  const when=isToday?'오늘':(d.getMonth()+1)+'/'+d.getDate()+' '+
+    DAYS[d.getDay()]+'요일';
+  const carried=r.carry!==undefined&&r.carry!==null;
+  const sets=puSets(p);
+  el('puTitle').textContent='팔굽혀펴기 — '+when+
+    (p===null?' · 쉬는 날':(p?' · Day '+p:' · 보강일'))+(carried?' (이월)':'');
+  r.pu=r.pu||[];
+  let html='',done=0,total=0;
+  if(!sets){
+    html='<div class="tip">'+(p===null
+      ? '팔굽 없는 날이다. 같은 부위는 48 시간이 필요하다 — 쉬는 것도 프로그램이다.'
+      : '보강일이다. 팔굽은 쉬고 아래 AB 슬라이드만 한다.')+
+      '<br>밀린 것이 있으면 위에서 당겨올 수 있다.</div>';
+    el('restbox').style.display='none';
+  }else{
+    el('restbox').style.display='flex';
+    total=sets.length;done=r.pu.filter(x=>x>0).length;
+    html='<div class="ex'+(done>=total?' done':'')+'"><div class="eh">'+
+      '<span class="en">5 세트</span><span class="et">목표 '+
+      sets.reduce((a,b)=>a+b,0)+'개 · '+LV[CFG.lv]+' '+CFG.wk+'주차</span></div>'+
+      '<div class="sets">'+sets.map((v,i)=>
+        '<button class="st'+(r.pu[i]>0?' on':'')+'" data-i="'+i+'">'+
+        '<div class="sn">'+(i===4?'최대':'세트 '+(i+1))+'</div>'+
+        '<div class="sv">'+v+(i===4?'+':'')+'</div></button>').join('')+
+      '</div><div class="exnote">누르면 그 세트가 끝난 것으로 기록된다. '+
+      '가슴이 주먹 하나 높이까지 내려가야 한 개다.</div></div>';
+  }
+  el('puBody').innerHTML=html;
+  el('puBody').querySelectorAll('.st').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i;
+    r.pu[i]=r.pu[i]>0?0:sets[i];
+    save();render();
+  });
+  const pct=total?done/total*100:0;
+  el('bar').firstElementChild.style.width=pct+'%';
+  el('puProg').textContent=total?(done+' / '+total+' 세트'):'';
+
+  // AB
+  r.ab=r.ab||{};
+  let ah='',ad=0,at=0;
+  AB.forEach((a,i)=>{
+    const [nm,ns,rep,note]=a;
+    at+=ns;const dn=r.ab[i]||0;ad+=dn;
+    ah+='<div class="ex'+(dn>=ns?' done':'')+'"><div class="eh">'+
+      '<span class="en">'+nm+'</span><span class="et">'+ns+' 세트 × '+rep+
+      '</span></div><div class="mini">'+
+      Array.from({length:ns},(_,j)=>
+        '<button class="mb'+(j<dn?' on':'')+'" data-a="'+i+'" data-s="'+(j+1)+
+        '">'+(j+1)+'</button>').join('')+
+      '</div><div class="exnote">'+note+'</div></div>';
+  });
+  el('abBody').innerHTML=ah;
+  el('abProg').textContent=when+'　·　'+ad+' / '+at+' 세트';
+  el('abBody').querySelectorAll('.mb').forEach(b=>b.onclick=()=>{
+    const i=b.dataset.a,s=+b.dataset.s;
+    r.ab[i]=(r.ab[i]===s)?s-1:s;
+    save();render();
+  });
+
+  // 팁
+  const ms=missed();
+  let tip;
+  if(!sets&&p===null){
+    tip='<b>왜 쉬나</b> — 같은 부위는 48 시간이 필요하다. '+
+      '월·수·금·토 배치가 그 간격을 지키게 되어 있다. '+
+      '화·목은 달리기 날이다.';
+  }else if(ms.length){
+    tip='<b>밀린 날 '+ms.length+'개.</b> 위에서 당겨오면 된다. '+
+      '주 3 회만 채우면 프로그램은 그대로 간다.';
+  }else if(pct>=100){
+    tip='<b>다 했다.</b> 마지막 세트가 목표보다 5 개 이상 더 됐으면 '+
+      '다음 주차로 넘어가도 된다. 안 되면 같은 주차를 한 번 더.';
+  }else{
+    tip='<b>자세가 개수보다 먼저다.</b> 반동 없이, 내려갈 때 2 초. '+
+      '5 세트를 다 채우는 것보다 마지막 세트에서 진짜 한계까지 가는 게 중요하다.';
+  }
+  el('tipbox').innerHTML=tip;
+}
+
+// ── 휴식 타이머 ───────────────────────────────
+let rt=null;
+el('rstart').onclick=()=>{
+  clearInterval(rt);let s=90;
+  const show=()=>el('rtime').textContent=
+    Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+  show();
+  rt=setInterval(()=>{s--;show();if(s<=0){clearInterval(rt);
+    el('rtime').textContent='시작';}},1000);
+};
+
+// ── 달리기 ────────────────────────────────────
+function paceOf(km,min){
+  if(!km||!min)return '';
+  const p=min/km;
+  return Math.floor(p)+'′'+String(Math.round((p%1)*60)).padStart(2,'0')+
+    '″ /km';
+}
+function paceShow(){
+  const km=+el('rkm').value||0,min=+el('rmin').value||0;
+  el('rpace').textContent=paceOf(km,min)||'—';
+}
+el('rkm').addEventListener('input',paceShow);
+el('rmin').addEventListener('input',paceShow);
+el('rAdd').onclick=()=>{
+  const km=+el('rkm').value||0,min=+el('rmin').value||0;
+  if(!km||!min)return;
+  RUN.unshift({d:viewKey,km:km,min:min});
+  RUN=RUN.slice(0,200);saveR();el('rmin').value='';render();
+};
+function runBox(){
+  const ks=weekKeys();
+  el('runwk').innerHTML=ks.map(k=>{
+    const w=dOf(k).getDay(),m=kmOf(k),rs=RUNSCHED[w];
+    return '<div class="rdot'+(m?' run':'')+(k===KEY?' today':'')+'">'+
+      DAYS[w]+(m?' '+m.toFixed(1):(rs?' ◦':''))+'</div>';
+  }).join('');
+  const wk=ks.reduce((a,k)=>a+kmOf(k),0);
+  el('rWk').textContent=wk.toFixed(1);
+  el('rTot').textContent=RUN.reduce((a,b)=>a+(+b.km||0),0).toFixed(1);
+  const th=RUN.filter(r=>r.km>=2.9&&r.km<=3.2&&r.min>0);
+  el('rBest').textContent=th.length
+    ? (Math.min(...th.map(r=>r.min)).toFixed(0)+'분') : '—';
+  el('rHist').innerHTML=RUN.slice(0,8).map(r=>
+    '<div class="hr"><span class="hd">'+r.d.slice(5)+'</span>'+
+    '<span class="hn">'+r.km+' km · '+r.min+'분</span>'+
+    '<span class="hv">'+paceOf(r.km,r.min)+'</span>'+
+    '<button class="hx" data-r="'+r.d+'|'+r.km+'|'+r.min+'">✕</button></div>'
+  ).join('')||'<div class="tip">아직 없다. 3 km 부터 시작하면 된다.</div>';
+  el('rHist').querySelectorAll('.hx').forEach(b=>b.onclick=()=>{
+    const [d,km,min]=b.dataset.r.split('|');
+    const i=RUN.findIndex(x=>x.d===d&&x.km==km&&x.min==min);
+    if(i>=0)RUN.splice(i,1);
+    saveR();render();
+  });
+  const best=th.length?Math.min(...th.map(r=>r.min)):0;
+  el('rtip').innerHTML=wk>=6
+    ? '<b>주 6 km 넘겼다.</b> 다음은 속도가 아니라 <b>같은 페이스로 한 번 더</b>다.'
+    : (best&&best<=18
+      ? '<b>3 km 18 분 아래.</b> 페이스는 충분하다. 이제 횟수를 늘려라.'
+      : '<b>화 · 목 저녁 30 분이면 된다.</b> 실험 램프 · 냉각 시간이 그대로 비는 시간이다. '+
+        '주 1 회라도 끊기지 않는 쪽이 주 3 회 하다 멈추는 것보다 낫다.');
+}
+
+// ── 최대 개수 ─────────────────────────────────
+el('mxAdd').onclick=()=>{
+  const n=el('mxEx').value,v=+el('mxN').value||0;
+  if(!v)return;
+  MX.unshift({d:KEY.slice(5),n:n,v:v});MX=MX.slice(0,40);
+  LSset(LSM,JSON.stringify(MX));el('mxN').value='';mxHist();
+};
+function mxHist(){
+  el('mxHist').innerHTML=MX.slice(0,8).map(m=>
+    '<div class="hr"><span class="hd">'+m.d+'</span><span class="hn">'+m.n+
+    '</span><span class="hv">'+m.v+'</span></div>').join('')||
+    '<div class="tip">2 주에 한 번 한계까지 해보고 적으면 단계를 언제 올릴지 알 수 있다.</div>';
+}
+
+// ── 날짜별 기록 (달력) ────────────────────────
+el('mPrev').onclick=()=>{calM.setMonth(calM.getMonth()-1);render();};
+el('mNext').onclick=()=>{calM.setMonth(calM.getMonth()+1);render();};
+el('mToday').onclick=()=>{
+  calM=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);viewKey=KEY;render();};
+function calBox(){
+  const y=calM.getFullYear(),m=calM.getMonth();
+  el('mLabel').textContent=y+'.'+String(m+1).padStart(2,'0');
+  const first=new Date(y,m,1), last=new Date(y,m+1,0);
+  const lead=(first.getDay()+6)%7;              // 월요일 시작
+  let h=['월','화','수','목','금','토','일']
+    .map(d=>'<div class="cw">'+d+'</div>').join('');
+  for(let i=0;i<lead;i++)h+='<div class="cd blank"></div>';
+  let mr=0,mk=0,md=0;
+  for(let day=1;day<=last.getDate();day++){
+    const k=ymd(new Date(y,m,day));
+    const r=repsOf(k),a=absOf(k),km=kmOf(k);
+    if(r||a||km)md++;
+    mr+=r;mk+=km;
+    const cls=(r||a)&&km?'both':((r||a)?'has':(km?'run':''));
+    h+='<button class="cd '+cls+(k===viewKey?' sel':'')+(k===KEY?' tod':'')+
+      '" data-k="'+k+'"><div class="cn">'+day+'</div>'+
+      '<div class="cm">'+(r?r:'')+(r&&km?'<br>':'')+
+      (km?km.toFixed(1)+'k':'')+'</div></button>';
+  }
+  el('cal').innerHTML=h;
+  el('cal').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{
+    viewKey=b.dataset.k;render();
+    document.querySelector('.card[style*="0f766e"]')
+      .scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  el('calinfo').textContent=md+'일 운동 · 푸시업 '+mr+'개 · '+mk.toFixed(1)+' km';
+  // 고른 날 상세
+  const k=viewKey,d=dOf(k),r=repsOf(k),a=absOf(k),km=kmOf(k);
+  const L=labelOf(k);
+  const runs=RUN.filter(x=>x.d===k);
+  el('dayd').innerHTML='<b>'+(d.getMonth()+1)+'월 '+d.getDate()+'일 '+
+    DAYS[d.getDay()]+'요일</b> — 계획 '+L.t+'<br>'+
+    (r||a||km
+      ? '푸시업 <b>'+r+'</b>개　·　AB <b>'+a+'</b>세트'+
+        (km?'　·　달리기 <b>'+km.toFixed(1)+'</b> km'+
+          (runs[0]&&runs[0].min?' ('+runs[0].min+'분 · '+
+            paceOf(runs[0].km,runs[0].min)+')':''):'')
+      : '기록 없음. 위 팔굽 · AB 칸에서 이 날짜로 바로 적을 수 있다.')+
+    (k!==KEY?'<br><span style="color:var(--ink3);font-size:11.5px">'+
+      '지금 위 칸들은 이 날짜를 편집한다. 「오늘」 을 누르면 돌아온다.</span>':'');
+}
+
+// ── 그리기 ────────────────────────────────────
+function render(){overview();renderPU();runBox();mxHist();calBox();paceShow();}
+render();
+</script>
+</body></html>

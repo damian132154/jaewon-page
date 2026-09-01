@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CVD 타이머</title>
+<style>
+:root{--bg:#f7f8fb;--card:#fff;--ink:#151922;--ink2:#5b6472;--ink3:#98a0ac;
+--line:#e6e9ee;--navy:#1f3251;--blue:#2563eb;--red:#dc2626;--green:#0f6b52}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);
+ font-family:"맑은 고딕",Malgun Gothic,system-ui,sans-serif;
+ background:radial-gradient(800px 400px at 50% -10%,#e8efff 0%,transparent 60%),
+ var(--bg)}
+.wrap{max-width:680px;margin:0 auto;padding:40px 20px 80px}
+header{text-align:center;margin-bottom:8px}
+h1{margin:0 0 4px;font-size:26px;font-weight:800;letter-spacing:-.02em}
+h1 b{color:var(--blue)}
+.lead{margin:0;color:var(--ink2);font-size:13px}
+#clock{text-align:center;font-size:15px;color:var(--ink2);margin:10px 0 24px;
+ font-variant-numeric:tabular-nums}
+.runbox{background:#fff;border:1px solid var(--line);border-radius:14px;
+ padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(21,25,34,.05)}
+.rt{font-size:14px;font-weight:700;margin-bottom:11px}
+.rt span{font-size:11.5px;color:var(--ink3);font-weight:400;margin-left:7px}
+.rigs{display:flex;gap:7px;margin-bottom:11px}
+.rig{border:1px solid var(--line);background:#fff;color:var(--ink2);
+ padding:7px 15px;border-radius:20px;font-size:12.5px;cursor:pointer;
+ font-family:inherit;transition:.13s}
+.rig:hover{border-color:var(--blue);color:var(--blue)}
+.rig.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.rrow button.ghost{background:#fff;color:var(--ink2);
+ border:1px solid var(--line)}
+.rrow button.ghost:hover{border-color:var(--blue);color:var(--blue)}
+.rrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.rrow label{font-size:12.5px;color:var(--ink2);display:flex;align-items:center;
+ gap:5px}
+.rrow input[type=time]{padding:8px 9px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;font-family:inherit;outline:none}
+.rrow input[type=number]{width:66px;padding:8px 9px;border:1px solid var(--line);
+ border-radius:9px;font-size:13.5px;font-family:inherit;outline:none}
+.rrow #rn{flex:1;min-width:130px;padding:8px 12px;border:1px solid var(--line);
+ border-radius:9px;font-size:13.5px;font-family:inherit;outline:none}
+.rrow input:focus{border-color:var(--blue)}
+.rrow button{padding:9px 18px;border:none;border-radius:9px;background:var(--blue);
+ color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.rhint{margin-top:9px;font-size:11.5px;color:var(--ink3);
+ font-variant-numeric:tabular-nums}
+.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+ margin-bottom:14px}
+.pre{background:#fff;border:1px solid var(--line);border-radius:12px;
+ padding:13px 8px;cursor:pointer;font-family:inherit;text-align:center;
+ transition:.13s}
+.pre:hover{border-color:var(--blue);transform:translateY(-2px)}
+.pre .t{font-size:14.5px;font-weight:700}
+.pre .m{font-size:11.5px;color:var(--ink3);margin-top:2px}
+.pre.hot{border-color:#fca5a5;background:#fff7f7}
+.pre.hot .t{color:var(--red)}
+.custom{display:flex;gap:8px;margin-bottom:26px}
+.custom input{flex:1;padding:11px 14px;border:1px solid var(--line);
+ border-radius:11px;font-size:14px;font-family:inherit;outline:none}
+.custom input:focus{border-color:var(--blue)}
+.custom button{padding:11px 20px;border:none;border-radius:11px;
+ background:var(--navy);color:#fff;font-size:14px;font-weight:700;
+ cursor:pointer;font-family:inherit}
+#list{display:flex;flex-direction:column;gap:12px}
+.timer{background:#fff;border:1px solid var(--line);border-radius:14px;
+ padding:16px 18px;display:flex;align-items:center;gap:16px;
+ box-shadow:0 1px 3px rgba(21,25,34,.05)}
+.timer.done{border-color:var(--red);background:#fff5f5;
+ animation:blink 1s infinite}
+@keyframes blink{50%{background:#ffe3e3}}
+.tl{flex:1;min-width:0}
+.tn{font-size:14px;font-weight:700}
+.te{font-size:12px;color:var(--ink2);margin-top:2px}
+.tc{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;
+ letter-spacing:-.02em;min-width:118px;text-align:right}
+.timer.done .tc{color:var(--red)}
+.tx{border:none;background:var(--line);color:var(--ink2);width:32px;height:32px;
+ border-radius:50%;cursor:pointer;font-size:15px;flex:none}
+.tx:hover{background:#fdeaea;color:var(--red)}
+.hint{text-align:center;color:var(--ink3);font-size:12px;margin-top:30px;
+ line-height:1.8}
+</style></head><body>
+<div class="wrap">
+<header><h1>CVD <b>타이머</b></h1>
+<p class="lead">성장 10 분을 놓치면 런이 날아간다. 걸어두고 다른 일 하러 간다.</p>
+</header>
+<div id="clock"></div>
+
+<div class="runbox">
+  <div class="rt">런 걸기 <span>장비를 고르면 그 장비 기본값이 채워진다. 고치면 기억한다</span></div>
+  <div class="rigs">
+    <button class="rig on" data-rig="LCVD">LCVD</button>
+    <button class="rig" data-rig="HCVD">HCVD</button>
+    <button class="rig" data-rig="Annealing">Annealing CVD</button>
+  </div>
+  <div class="rrow">
+    <label>로딩 <input id="r0" type="number" min="0" step="1"> 분</label>
+    <label>승온 <input id="r1" type="number" min="0" step="1"> 분</label>
+    <label>성장 <input id="r2" type="number" min="0" step="1"> 분</label>
+    <label>냉각 <input id="r3" type="number" min="0" step="1"> 분</label>
+  </div>
+  <div class="rrow" style="margin-top:8px">
+    <label>시작 <input id="rt" type="time" step="60"> </label>
+    <button id="rnow" class="ghost">지금</button>
+    <input id="rn" placeholder="런 번호 (예: LCVD#114)">
+    <button id="rgo">예약</button>
+    <button id="rsave" class="ghost">기본값으로 저장</button>
+  </div>
+  <div class="rhint" id="rhint"></div>
+</div>
+
+<div class="presets">
+  <button class="pre hot" data-m="10" data-n="성장 — 끄기">
+    <div class="t">성장 10 분</div><div class="m">시간 되면 끈다</div></button>
+  <button class="pre" data-m="60" data-n="승온 · 어닐링 끝">
+    <div class="t">승온 1 시간</div><div class="m">LCVD 기준</div></button>
+  <button class="pre" data-m="180" data-n="냉각 끝 — 언로딩 가능">
+    <div class="t">냉각 3 시간</div><div class="m">언로딩 가능</div></button>
+  <button class="pre" data-m="2" data-n="성장 2 분 — 끄기">
+    <div class="t">성장 2 분</div><div class="m">핵생성 런용</div></button>
+  <button class="pre" data-m="45" data-n="전사 확인">
+    <div class="t">전사 45 분</div><div class="m">건질 때 확인</div></button>
+  <button class="pre" data-m="15" data-n="로딩 · 진공 끝">
+    <div class="t">로딩 15 분</div><div class="m">진공 확인</div></button>
+</div>
+
+<div class="custom">
+  <input id="cm" type="number" min="1" placeholder="분 직접 입력">
+  <input id="cn" placeholder="이름 (선택)">
+  <button id="go">시작</button>
+</div>
+
+<div id="list"></div>
+
+<p class="hint">끝나면 소리가 나고 탭 제목이 깜박인다 — 탭을 켜 둘 것.<br>
+새로고침해도 타이머는 살아 있다.</p>
+</div>
+<script>
+const LS='cvd_timers';
+let timers=[];
+try{timers=JSON.parse(localStorage.getItem(LS)||'[]');}catch(e){timers=[];}
+const list=document.getElementById('list');
+const baseTitle=document.title;
+let ac=null;
+function beep(){
+  try{
+    ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    for(let i=0;i<4;i++){
+      const o=ac.createOscillator(),g=ac.createGain();
+      o.connect(g);g.connect(ac.destination);
+      o.frequency.value=880;g.gain.value=.25;
+      o.start(ac.currentTime+i*.45);o.stop(ac.currentTime+i*.45+.28);
+    }
+  }catch(e){}
+}
+function save(){localStorage.setItem(LS,JSON.stringify(timers));}
+function fmt(s){
+  s=Math.max(0,Math.round(s));
+  const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;
+  return (h?h+':':'')+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0');
+}
+function hhmm(t){
+  const d=new Date(t);
+  return String(d.getHours()).padStart(2,'0')+':'+
+         String(d.getMinutes()).padStart(2,'0');
+}
+function add(min,name){
+  timers.push({id:Date.now()+Math.random(),name:name||min+'분',
+    end:Date.now()+min*60000,fired:false});
+  save();draw();
+}
+function draw(){
+  list.innerHTML='';
+  timers.forEach(t=>{
+    const left=(t.end-Date.now())/1000;
+    const done=left<=0;
+    const el=document.createElement('div');
+    el.className='timer'+(done?' done':'');
+    el.innerHTML='<div class="tl"><div class="tn">'+t.name+'</div>'+
+      '<div class="te">'+(done?'끝났다 — 지금 가라':hhmm(t.end)+' 에 알림')+
+      '</div></div><div class="tc">'+(done?'0:00':fmt(left))+'</div>'+
+      '<button class="tx" data-id="'+t.id+'">✕</button>';
+    list.appendChild(el);
+  });
+  list.querySelectorAll('.tx').forEach(b=>b.onclick=()=>{
+    timers=timers.filter(x=>String(x.id)!==b.dataset.id);save();draw();
+  });
+}
+setInterval(()=>{
+  let anyDone=false;
+  timers.forEach(t=>{
+    if(!t.fired&&t.end<=Date.now()){t.fired=true;beep();save();}
+    if(t.end<=Date.now())anyDone=true;
+  });
+  draw();
+  if(anyDone){
+    document.title=(document.title===baseTitle)?'⏰ 시간 됐다!':baseTitle;
+  }else if(timers.length){
+    const next=Math.min(...timers.map(t=>t.end));
+    document.title=fmt((next-Date.now())/1000)+' · '+baseTitle;
+  }else document.title=baseTitle;
+},500);
+setInterval(()=>{
+  const d=new Date();
+  document.getElementById('clock').textContent='지금 '+
+    String(d.getHours()).padStart(2,'0')+':'+
+    String(d.getMinutes()).padStart(2,'0')+':'+
+    String(d.getSeconds()).padStart(2,'0');
+},250);
+document.querySelectorAll('.pre').forEach(b=>b.onclick=()=>{
+  add(parseFloat(b.dataset.m),b.dataset.n);
+});
+document.getElementById('go').onclick=()=>{
+  const m=parseFloat(document.getElementById('cm').value);
+  if(m>0)add(m,document.getElementById('cn').value.trim());
+};
+draw();
+
+const DEF={
+  LCVD:      {r0:15,r1:60, r2:10,r3:180},
+  HCVD:      {r0:15,r1:90, r2:30,r3:240},
+  Annealing: {r0:15,r1:120,r2:1440,r3:300}
+};
+let RIG='LCVD';
+function saved(){
+  try{return JSON.parse(localStorage.getItem('cvd_phase')||'{}');}
+  catch(e){return {};}
+}
+function fill(){
+  const s=saved()[RIG]||DEF[RIG];
+  ['r0','r1','r2','r3'].forEach(k=>{document.getElementById(k).value=s[k];});
+  preview();
+}
+function vals(){
+  const o={};
+  ['r0','r1','r2','r3'].forEach(k=>{o[k]=+document.getElementById(k).value||0;});
+  return o;
+}
+function startMs(){
+  const s=document.getElementById('rt').value;
+  if(!s)return Date.now();
+  const [h,m]=s.split(':').map(Number);
+  const d=new Date();d.setHours(h,m,0,0);
+  return d.getTime();
+}
+function preview(){
+  const v=vals(), now=startMs();
+  const t0=now+v.r0*60000, t1=t0+v.r1*60000,
+        t2=t1+v.r2*60000, t3=t2+v.r3*60000;
+  const past=now<Date.now()-60000;
+  document.getElementById('rhint').innerHTML=
+    (past?'<b>'+hhmm(now)+' 시작 기준</b>　·　':'')+
+    '진공 완료 '+hhmm(t0)+'　→　승온 끝 '+hhmm(t1)+
+    '　→　<b>성장 끝(끄기) '+hhmm(t2)+'</b>　→　냉각 끝(언로딩) '+hhmm(t3);
+}
+document.querySelectorAll('.rig').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.rig').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');RIG=b.dataset.rig;fill();
+});
+['r0','r1','r2','r3'].forEach(k=>
+  document.getElementById(k).addEventListener('input',preview));
+document.getElementById('rsave').onclick=()=>{
+  const s=saved();s[RIG]=vals();
+  localStorage.setItem('cvd_phase',JSON.stringify(s));
+  const b=document.getElementById('rsave');
+  b.textContent='저장했다';setTimeout(()=>b.textContent='기본값으로 저장',1200);
+};
+function addAt(ms,name){
+  if(ms<=Date.now())return 0;
+  timers.push({id:Date.now()+Math.random(),name:name,end:ms,fired:false});
+  return 1;
+}
+document.getElementById('rnow').onclick=()=>{
+  const d=new Date();
+  document.getElementById('rt').value=
+    String(d.getHours()).padStart(2,'0')+':'+
+    String(d.getMinutes()).padStart(2,'0');
+  preview();
+};
+document.getElementById('rt').addEventListener('input',preview);
+document.getElementById('rgo').onclick=()=>{
+  const v=vals(), nm=document.getElementById('rn').value.trim();
+  const tag=nm?nm+' · ':'';
+  const base=startMs();
+  let acc=0,made=0,skipped=0;
+  const steps=[[v.r0,'진공 완료 — 승온 시작'],[v.r1,'승온 끝 — holding 도달'],
+               [v.r2,'성장 끝 — 지금 끈다'],[v.r3,'냉각 끝 — 언로딩 가능']];
+  steps.forEach(([m,nmm])=>{
+    if(m>0){acc+=m; const ok=addAt(base+acc*60000,tag+nmm);
+            made+=ok; skipped+=ok?0:1;}
+  });
+  save();draw();preview();
+  if(skipped){
+    const h=document.getElementById('rhint');
+    h.innerHTML+='<br><b>'+skipped+' 단계는 이미 지나서 건너뛰었다.</b>';
+  }
+};
+fill();
+</script>
+</body></html>

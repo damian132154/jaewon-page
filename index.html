@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>재원 개인 페이지</title>
+<style>
+:root{--bg:#f7f8fb;--card:#fff;--ink:#151922;--ink2:#5b6472;--ink3:#98a0ac;
+--line:#e6e9ee;--navy:#1f3251}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);
+ font-family:"맑은 고딕",Malgun Gothic,system-ui,sans-serif;
+ -webkit-font-smoothing:antialiased;
+ background:
+  radial-gradient(900px 460px at 12% -8%,#e8efff 0%,transparent 62%),
+  radial-gradient(760px 420px at 88% -4%,#f3e9ff 0%,transparent 60%),var(--bg);
+ background-attachment:fixed}
+.wrap{max-width:1140px;margin:0 auto;padding:50px 24px 90px}
+header{text-align:center;margin-bottom:24px}
+.kicker{display:inline-block;font-size:12px;color:var(--ink2);background:#fff;
+ border:1px solid var(--line);padding:5px 14px;border-radius:20px}
+h1{margin:14px 0 8px;font-size:38px;letter-spacing:-.03em;font-weight:800}
+h1 b{background:linear-gradient(92deg,#2563eb,#7c3aed);
+ -webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{margin:0;color:var(--ink2);font-size:14.5px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;
+ margin:26px 0 12px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:13px;
+ padding:14px 10px;text-align:center;box-shadow:0 1px 3px rgba(21,25,34,.04)}
+.kv{font-size:23px;font-weight:800;letter-spacing:-.02em}
+.kl{font-size:11.5px;color:var(--ink2);margin-top:3px}
+.planline{text-align:center;color:var(--ink2);font-size:12.5px;
+ margin:0 0 26px}
+.tools{display:flex;flex-direction:column;align-items:center;gap:13px;
+ margin:0 0 36px}
+#q{width:100%;max-width:460px;padding:13px 20px;border:1px solid var(--line);
+ border-radius:26px;font-size:14px;background:#fff;outline:none;
+ font-family:inherit;box-shadow:0 2px 10px rgba(21,25,34,.04)}
+#q:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chip{border:1px solid var(--line);background:#fff;color:var(--ink2);
+ padding:7px 16px;border-radius:20px;font-size:12.5px;cursor:pointer;
+ font-family:inherit;transition:.14s}
+.chip:hover{border-color:var(--c,#2563eb);color:var(--c,#2563eb)}
+.chip.on{background:var(--c,var(--navy));color:#fff;
+ border-color:var(--c,var(--navy))}
+section{margin-bottom:34px}
+h2{display:flex;align-items:center;gap:10px;font-size:15px;margin:0 0 15px;
+ font-weight:800}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.sub{font-size:12px;color:var(--ink3);font-weight:400}
+.n{font-size:11.5px;color:var(--ink3);font-weight:700;background:#fff;
+ border:1px solid var(--line);padding:1px 9px;border-radius:20px}
+.grid{display:grid;gap:14px;
+ grid-template-columns:repeat(auto-fill,minmax(252px,1fr))}
+.card{display:block;width:100%;text-align:left;background:var(--card);
+ border:1px solid var(--line);border-radius:14px;padding:18px 18px 15px;
+ text-decoration:none;color:inherit;transition:.16s;position:relative;
+ overflow:hidden;font-family:inherit;cursor:pointer;
+ box-shadow:0 1px 3px rgba(21,25,34,.04)}
+.card::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;
+ background:var(--c)}
+.card:hover{transform:translateY(-3px);border-color:var(--c);
+ box-shadow:0 10px 26px rgba(21,25,34,.10)}
+.card.dead{opacity:.4}
+.ico{width:38px;height:38px;border-radius:11px;display:flex;
+ align-items:center;justify-content:center;font-size:17px;color:var(--c);
+ background:color-mix(in srgb,var(--c) 12%,#fff);margin-bottom:11px}
+.nm{font-size:15.5px;font-weight:700;margin-bottom:5px;word-break:keep-all}
+.ds{font-size:12.5px;color:var(--ink2);line-height:1.55;min-height:38px;
+ word-break:keep-all}
+.go{margin-top:10px;font-size:12px;color:var(--c);font-weight:700}
+.pt{margin-top:7px;font-size:11px;color:var(--ink3);
+ font-family:ui-monospace,Consolas,monospace;word-break:break-all}
+footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:48px;
+ line-height:1.9}
+code{background:#fff;border:1px solid var(--line);padding:2px 8px;
+ border-radius:6px;font-size:11.5px}
+.empty{text-align:center;color:var(--ink3);padding:40px;display:none}
+#toast{position:fixed;left:50%;bottom:28px;
+ transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;
+ padding:10px 20px;border-radius:22px;font-size:13px;opacity:0;transition:.2s;
+ pointer-events:none}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:760px){.kpis{grid-template-columns:repeat(3,1fr)}
+ h1{font-size:30px}}
+</style></head><body>
+<div class="wrap">
+<header>
+  <div class="kicker">SKKU · IBS 2DQH</div>
+  <h1>재원 <b>개인 페이지</b></h1>
+  <p class="lead">매일 여는 것들을 한 곳에. 카드를 누르면 바로 열린다.</p>
+</header>
+
+<p class="planline">오늘 잡힌 런 — LCVD#114 · LCVD#115 · Annealing CVD#003　|　보류 · 정비 : HCVD#085 · HCVD#086</p>
+
+<div class="tools">
+  <input id="q" placeholder="이름 · 경로로 검색…" autocomplete="off">
+  <div class="chips">
+    <button class="chip on" data-tag="" style="--c:var(--navy)">전체</button>
+    <button class="chip" data-tag="오늘" style="--c:#2563eb">오늘</button><button class="chip" data-tag="굴러가는 것" style="--c:#7c3aed">굴러가는 것</button><button class="chip" data-tag="지난 날짜" style="--c:#0d9488">지난 날짜</button><button class="chip" data-tag="문헌" style="--c:#c2410c">문헌</button><button class="chip" data-tag="명령" style="--c:#475569">명령</button><button class="chip" data-tag="도구" style="--c:#0f766e">도구</button>
+  </div>
+</div>
+
+<section data-tag="오늘" style="--c:#2563eb"><h2><span class="dot"></span>오늘<span class="sub">오늘 여는 것</span><span class="n">3</span></h2><div class="grid"><a class="card" href="할일_260901.html" data-tag="오늘" data-q="할일 목록 그날의 순서 · 런 표 · 진행 중 01_daily_report/기록/2026-09-01/할일_260901.html"><div class="ico">✓</div><div class="nm">할일 목록</div><div class="ds">그날의 순서 · 런 표 · 진행 중</div><div class="go">열기 ↗</div><div class="pt">01_daily_report/기록/2026-09-01/할일_260901.html</div></a><a class="card" href="260901_신착문헌.html" data-tag="오늘" data-q="신착 문헌 아침 8 시 자동 수집 · 한글 요약 01_daily_report/기록/2026-09-01/리포트/260901_신착문헌.html"><div class="ico">✦</div><div class="nm">신착 문헌</div><div class="ds">아침 8 시 자동 수집 · 한글 요약</div><div class="go">열기 ↗</div><div class="pt">01_daily_report/기록/2026-09-01/리포트/260901_신착문헌.html</div></a></div></section><section data-tag="굴러가는 것" style="--c:#7c3aed"><h2><span class="dot"></span>굴러가는 것<span class="sub">계속 굴러가는 기준 자료</span><span class="n">3</span></h2><div class="grid"><a class="card" href="런표.html" data-tag="굴러가는 것" data-q="런표 장비별 조건 · 상태 · 분석 진행. 고치는 것은 런표.xlsx 에서 01_daily_report/런표.html"><div class="ico">▦</div><div class="nm">런표</div><div class="ds">장비별 조건 · 상태 · 분석 진행. 고치는 것은 런표.xlsx 에서</div><div class="go">열기 ↗</div><div class="pt">01_daily_report/런표.html</div></a><a class="card" href="진행중.html" data-tag="굴러가는 것" data-q="진행 중 발주 · 수리 · 회신 대기 · 기억할 일. 고치는 것은 진행중.yaml 에서 01_daily_report/진행중.html"><div class="ico">◈</div><div class="nm">진행 중</div><div class="ds">발주 · 수리 · 회신 대기 · 기억할 일. 고치는 것은 진행중.yaml 에서</div><div class="go">열기 ↗</div><div class="pt">01_daily_report/진행중.html</div></a><a class="card" href="세미나메모.html" data-tag="굴러가는 것" data-q="세미나 메모 세미나 · 그룹미팅 · 교수님 코멘트. 태그 달아 검색 01_daily_report/세미나메모.html"><div class="ico">▤</div><div class="nm">세미나 메모</div><div class="ds">세미나 · 그룹미팅 · 교수님 코멘트. 태그 달아 검색</div><div class="go">열기 ↗</div><div class="pt">01_daily_report/세미나메모.html</div></a></div></section><section data-tag="지난 날짜" style="--c:#0d9488"><h2><span class="dot"></span>지난 날짜<span class="sub">지나간 날의 기록</span><span class="n">1</span></h2><div class="grid"><a class="card" href="할일_260831.html" data-tag="지난 날짜" data-q="08/31 할일 어제 01_daily_report/기록/2026-08-31/할일_260831.html"><div class="ico">○</div><div class="nm">08/31 할일</div><div class="ds">어제</div><div class="go">열기 ↗</div><div class="pt">01_daily_report/기록/2026-08-31/할일_260831.html</div></a></div></section><section data-tag="문헌" style="--c:#c2410c"><h2><span class="dot"></span>문헌<span class="sub">일일 · 월간 · 상반기</span><span class="n">3</span></h2><div class="grid"><a class="card" href="일일문헌.html" data-tag="문헌" data-q="일일 문헌 아침 8 시 자동 수집 · 날짜별 2 일치 04_문헌/일일문헌.html"><div class="ico">✧</div><div class="nm">일일 문헌</div><div class="ds">아침 8 시 자동 수집 · 날짜별 2 일치</div><div class="go">열기 ↗</div><div class="pt">04_문헌/일일문헌.html</div></a><a class="card" href="기간문헌.html" data-tag="문헌" data-q="기간 문헌 월간 · 상반기 정리 2 건 04_문헌/기간문헌.html"><div class="ico">✦</div><div class="nm">기간 문헌</div><div class="ds">월간 · 상반기 정리 2 건</div><div class="go">열기 ↗</div><div class="pt">04_문헌/기간문헌.html</div></a></div></section><section data-tag="명령" style="--c:#475569"><h2><span class="dot"></span>명령<span class="sub">눌러서 복사 → 터미널에 붙여 넣기</span><span class="n">5</span></h2><div class="grid"><button class="card cmd" data-tag="명령" data-q="리포트 전부 다시 daily report · 결과 슬라이드 · 할일까지 python zz_tools/scripts/build_report_all.py" data-cmd="python zz_tools/scripts/build_report_all.py"><div class="ico">▶</div><div class="nm">리포트 전부 다시</div><div class="ds">Daily Report · 결과 슬라이드 · 할일까지</div><div class="go">복사 ⧉</div><div class="pt">python zz_tools/scripts/build_report_all.py</div></button><button class="card cmd" data-tag="명령" data-q="내일 준비 내일 폴더 · 메모 · 할일을 미리 만든다 python zz_tools/scripts/prep_tomorrow.py" data-cmd="python zz_tools/scripts/prep_tomorrow.py"><div class="ico">▶</div><div class="nm">내일 준비</div><div class="ds">내일 폴더 · 메모 · 할일을 미리 만든다</div><div class="go">복사 ⧉</div><div class="pt">python zz_tools/scripts/prep_tomorrow.py</div></button><button class="card cmd" data-tag="명령" data-q="포털 다시 카드를 새로 그린다 python zz_tools/scripts/build_portal.py" data-cmd="python zz_tools/scripts/build_portal.py"><div class="ico">▶</div><div class="nm">포털 다시</div><div class="ds">카드를 새로 그린다</div><div class="go">복사 ⧉</div><div class="pt">python zz_tools/scripts/build_portal.py</div></button><button class="card cmd" data-tag="명령" data-q="런표 · 진행중 다시 엑셀·yaml 고친 뒤 웹에 반영 python zz_tools/scripts/build_runtable_html.py &amp;&amp; python zz_tools/scripts/build_ongoing_html.py" data-cmd="python zz_tools/scripts/build_runtable_html.py &amp;&amp; python zz_tools/scripts/build_ongoing_html.py"><div class="ico">▶</div><div class="nm">런표 · 진행중 다시</div><div class="ds">엑셀·yaml 고친 뒤 웹에 반영</div><div class="go">복사 ⧉</div><div class="pt">python zz_tools/scripts/build_runtable_html.py &amp;&amp; python zz_tools/scripts/build_ongoing_html.py</div></button><button class="card cmd" data-tag="명령" data-q="문헌 다시 수집 아침 8 시에 자동으로 도는 것 python zz_tools/scripts/lit_daily.py" data-cmd="python zz_tools/scripts/lit_daily.py"><div class="ico">▶</div><div class="nm">문헌 다시 수집</div><div class="ds">아침 8 시에 자동으로 도는 것</div><div class="go">복사 ⧉</div><div class="pt">python zz_tools/scripts/lit_daily.py</div></button></div></section><section data-tag="도구" style="--c:#0f766e"><h2><span class="dot"></span>도구<span class="sub">가끔 쓰는 것</span><span class="n">5</span></h2><div class="grid"><a class="card" href="식단.html" data-tag="도구" data-q="식단 · 칼로리 키 · 몸무게로 목표 계산 → 먹은 것 기록 → 남은 칼로리 01_daily_report/식단.html"><div class="ico">◑</div><div class="nm">식단 · 칼로리</div><div class="ds">키 · 몸무게로 목표 계산 → 먹은 것 기록 → 남은 칼로리</div><div class="go">열기 ↗</div><div class="pt">01_daily_report/식단.html</div></a><a class="card" href="운동.html" data-tag="도구" data-q="운동 기록 푸시업 프로그램 · ab 슬라이드 · 3 km 달리기. 밀리면 다음 날로 01_daily_report/운동.html"><div class="ico">🏋</div><div class="nm">운동 기록</div><div class="ds">푸시업 프로그램 · AB 슬라이드 · 3 km 달리기. 밀리면 다음 날로</div><div class="go">열기 ↗</div><div class="pt">01_daily_report/운동.html</div></a><a class="card" href="뭐먹지.html" data-tag="도구" data-q="뭐 먹지 끼니 · 종류 · 조건으로 걸러 뽑는다. 최근 먹은 건 덜 나온다 01_daily_report/뭐먹지.html"><div class="ico">◈</div><div class="nm">뭐 먹지</div><div class="ds">끼니 · 종류 · 조건으로 걸러 뽑는다. 최근 먹은 건 덜 나온다</div><div class="go">열기 ↗</div><div class="pt">01_daily_report/뭐먹지.html</div></a><a class="card" href="하루기록.html" data-tag="도구" data-q="하루 기록 한 줄 일기 · 감사 세 개 · 기분 점수 · 오늘의 한마디 01_daily_report/하루기록.html"><div class="ico">✎</div><div class="nm">하루 기록</div><div class="ds">한 줄 일기 · 감사 세 개 · 기분 점수 · 오늘의 한마디</div><div class="go">열기 ↗</div><div class="pt">01_daily_report/하루기록.html</div></a><a class="card" href="타이머.html" data-tag="도구" data-q="cvd 타이머 시작 시각을 넣으면 승온 · 성장 · 냉각 끝나는 시각을 계산한다 01_daily_report/타이머.html"><div class="ico">⏱</div><div class="nm">CVD 타이머</div><div class="ds">시작 시각을 넣으면 승온 · 성장 · 냉각 끝나는 시각을 계산한다</div><div class="go">열기 ↗</div><div class="pt">01_daily_report/타이머.html</div></a></div></section>
+<div class="empty" id="empty">찾는 것이 없다.</div>
+
+<footer>
+  <code>python zz_tools/scripts/build_portal.py</code> 로 다시 만든다<br>
+  2026-09-01 기준 · 카드 22 개
+</footer>
+</div>
+<div id="toast">복사했다</div>
+<script>
+const q=document.getElementById('q');
+const chips=[...document.querySelectorAll('.chip')];
+const toast=document.getElementById('toast');
+let tag='';
+function apply(){
+  const s=q.value.trim().toLowerCase();
+  let shown=0;
+  document.querySelectorAll('section').forEach(sec=>{
+    let n=0;
+    sec.querySelectorAll('.card').forEach(c=>{
+      const ok=(!tag||c.dataset.tag===tag)&&(!s||c.dataset.q.includes(s));
+      c.style.display=ok?'':'none'; if(ok)n++;
+    });
+    sec.style.display=n?'':'none'; shown+=n;
+  });
+  document.getElementById('empty').style.display=shown?'none':'block';
+}
+q.addEventListener('input',apply);
+chips.forEach(c=>c.addEventListener('click',()=>{
+  chips.forEach(x=>x.classList.remove('on'));
+  c.classList.add('on'); tag=c.dataset.tag; apply();
+}));
+document.querySelectorAll('.card.cmd').forEach(b=>{
+  b.addEventListener('click',()=>{
+    navigator.clipboard.writeText(b.dataset.cmd).then(()=>{
+      toast.classList.add('on');
+      setTimeout(()=>toast.classList.remove('on'),1300);
+    });
+  });
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&document.activeElement!==q){e.preventDefault();q.focus();}
+});
+</script>
+</body></html>
