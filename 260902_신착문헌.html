@@ -270,18 +270,27 @@ header{border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(
     if(!j)return;
     live=true;
     (j.x||[]).forEach(function(k){delI.call(localStorage,k);});
-    var mine={};
+    var mine={}, changed=false;
     for(var i=0;i<localStorage.length;i++){
       var k=localStorage.key(i);
       if(k!==Q&&!(k in j.d)&&(j.x||[]).indexOf(k)<0)
         mine[k]=localStorage.getItem(k);
     }
-    for(var k2 in j.d)setI.call(localStorage,k2,j.d[k2]);
+    for(var k2 in j.d){
+      if(localStorage.getItem(k2)!==j.d[k2])changed=true;
+      setI.call(localStorage,k2,j.d[k2]);
+    }
     var q=pend();for(var k3 in q)mine[k3]=q[k3];
     if(Object.keys(mine).length)push(mine,function(){setPend({});});
     badge();
-    if(window.__afterSync)window.__afterSync();
-    else location.reload();
+    // 값이 실제로 달라졌을 때만, 그것도 이 탭에서 딱 한 번만 다시 그린다.
+    // (예전엔 무조건 reload 라 무한 새로고침이 났다)
+    try{
+      if(changed&&!sessionStorage.getItem('__synced')){
+        sessionStorage.setItem('__synced','1');
+        location.reload();
+      }
+    }catch(e){}
   })
   .catch(function(){live=false;badge();});
  addEventListener('DOMContentLoaded',badge);
