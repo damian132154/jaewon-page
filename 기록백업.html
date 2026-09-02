@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache">
+<title>기록 백업</title>
+<style>
+:root{--bg:#f6f8fa;--ink:#141821;--ink2:#525d6c;--ink3:#939daa;--line:#e2e8ef;
+--accent:#7c3aed;--soft:#f4f0ff;--green:#0f766e;--red:#c2410c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font-family:"맑은 고딕",Malgun Gothic,system-ui,sans-serif;line-height:1.7}
+.wrap{max-width:880px;margin:0 auto;padding:34px 20px 80px}
+.kicker{font-size:12.5px;color:var(--ink3);letter-spacing:.05em}
+h1{margin:6px 0 4px;font-size:27px;letter-spacing:-.02em}
+h1 b{color:var(--accent)}
+.lead{margin:0 0 22px;color:var(--ink2);font-size:13.5px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;
+ padding:20px 22px;margin-bottom:14px;border-top:3px solid var(--accent)}
+h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+h2 i{width:4px;height:16px;background:var(--accent);border-radius:2px;
+ display:inline-block;font-style:normal}
+p.n{font-size:13px;color:var(--ink2);margin:0 0 14px}
+p.n b{color:var(--ink)}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+button{border:1px solid var(--line);background:#fff;color:var(--ink2);
+ padding:11px 20px;border-radius:10px;font-size:13.5px;font-weight:700;
+ cursor:pointer;font-family:inherit}
+button.p{background:var(--accent);color:#fff;border-color:var(--accent)}
+button:hover{filter:brightness(.97)}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+th{text-align:left;font-size:11.5px;color:var(--ink3);font-weight:700;
+ padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid var(--line);color:var(--ink2)}
+td:first-child{font-weight:700;color:var(--ink)}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.warn{background:#fff7ec;border-left:3px solid var(--red);border-radius:9px;
+ padding:12px 15px;font-size:12.5px;color:var(--ink2);margin-top:12px}
+.warn b{color:var(--ink)}
+#msg{font-size:13px;font-weight:700;color:var(--green);margin-left:6px}
+textarea{width:100%;height:120px;border:1px solid var(--line);border-radius:10px;
+ padding:10px 12px;font-size:12px;font-family:ui-monospace,Consolas,monospace;
+ margin-top:10px}
+code{background:#eef2f7;padding:2px 7px;border-radius:5px;font-size:11.5px}
+</style></head><body>
+<div class="wrap">
+<div class="kicker">SKKU 에너지과학 · IBS 2D 양자이질구조</div>
+<h1>기록 <b>백업</b></h1>
+<p class="lead">식단 · 운동 · 뭐먹지 · 하루기록에 적은 것은 브라우저 안에만 있다.
+브라우저를 지우거나 다른 기기·다른 주소에서 열면 안 보인다. 여기서 파일로 빼두면 안 없어진다.</p>
+
+<div class="card">
+  <h2><i></i>지금 이 브라우저에 있는 것</h2>
+  <table id="tbl"><thead><tr><th>항목</th><th>내용</th><th class="n">크기</th></tr>
+  </thead><tbody></tbody></table>
+</div>
+
+<div class="card">
+  <h2><i></i>파일로 빼두기</h2>
+  <p class="n">누르면 <b>기록백업_YYMMDD.json</b> 이 내려받아진다.
+  그 파일을 <code>재원_클로드</code> 폴더에 넣어두면 영구 기록이 되고,
+  클로드에게 「기록 불러와줘」 하면 읽어서 되살릴 수 있다.</p>
+  <div class="row">
+    <button class="p" id="dl">파일로 내려받기</button>
+    <button id="cp">복사하기</button>
+    <span id="msg"></span>
+  </div>
+</div>
+
+<div class="card">
+  <h2><i></i>되돌리기</h2>
+  <p class="n">백업 파일을 고르거나, 내용을 아래에 붙여 넣고 누르면 그대로 복원된다.
+  <b>지금 있는 값은 덮어쓴다.</b></p>
+  <div class="row">
+    <input type="file" id="file" accept=".json,application/json">
+    <button id="restore">되돌리기</button>
+  </div>
+  <textarea id="paste" placeholder="여기에 백업 내용을 붙여 넣어도 된다"></textarea>
+  <div class="warn"><b>주소마다 따로 저장된다.</b>
+  <code>file://</code> 로 연 것과 <code>github.io</code> 로 연 것은 서로 다른 저장소다 —
+  한쪽에서 적은 것이 다른 쪽에 안 보이는 이유가 이것이다.
+  옮기려면 여기서 빼서 저기서 되돌리면 된다.</div>
+</div>
+
+<div class="card">
+  <h2><i></i>아예 안 날아가게 하려면</h2>
+  <p class="n">바탕화면 폴더의 <code>개인페이지 서버.bat</code> 를 켜고
+  <code>http://127.0.0.1:8765</code> 로 들어가면, 적은 것이 곧바로
+  <code>01_daily_report/.sync.json</code> 파일에 저장된다.
+  파일이라 브라우저와 무관하게 남고, 클로드가 읽고 쓸 수 있다.</p>
+</div>
+
+<script>
+const NAMES={
+ diet_log:"식단 — 날짜별 먹은 것", diet_profile:"식단 — 키·몸무게·목표",
+ diet_weight:"식단 — 몸무게 기록",
+ workout_log:"운동 — 날짜별 세트", workout_cfg:"운동 — 단계·주차·밀림",
+ workout_max:"운동 — 최대 개수", run_log:"운동 — 달리기",
+ eat_history:"뭐먹지 — 최근 먹은 것", eat_custom:"뭐먹지 — 직접 넣은 음식",
+ eat_skip:"뭐먹지 — 최근 제외 설정",
+ runtable_checks:"런표 — 분석 체크", runtable_marks:"런표 — 상태 표시",
+ day_log:"하루기록", body_tab:"몸 관리 — 마지막 탭",
+};
+function all(){
+  const o={};
+  try{for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i); o[k]=localStorage.getItem(k);}}catch(e){}
+  return o;
+}
+function human(v){
+  try{
+    const j=JSON.parse(v);
+    if(Array.isArray(j))return j.length+" 건";
+    if(j&&typeof j==="object"){
+      const k=Object.keys(j);
+      return k.length+" 항목"+(k.length?" · "+k.slice(0,3).join(", ")+
+        (k.length>3?" …":""):"");
+    }
+    return String(j).slice(0,40);
+  }catch(e){return String(v).slice(0,40);}
+}
+function draw(){
+  const o=all(), tb=document.querySelector("#tbl tbody");
+  const ks=Object.keys(o).sort();
+  tb.innerHTML=ks.length?ks.map(k=>
+    '<tr><td>'+(NAMES[k]||k)+'</td><td>'+human(o[k])+
+    '</td><td class="n">'+(o[k]||"").length.toLocaleString()+'</td></tr>'
+  ).join(''):'<tr><td colspan="3">아직 아무것도 없다.</td></tr>';
+}
+function stamp(){
+  const d=new Date();
+  return String(d.getFullYear()).slice(2)+
+    String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+}
+function payload(){
+  return JSON.stringify({saved:new Date().toISOString(),
+    origin:location.origin, data:all()}, null, 1);
+}
+function flash(s){const m=document.getElementById('msg');m.textContent=s;
+  setTimeout(()=>m.textContent='',1800);}
+document.getElementById('dl').onclick=()=>{
+  const b=new Blob([payload()],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b); a.download='기록백업_'+stamp()+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  flash('내려받았다');
+};
+document.getElementById('cp').onclick=async()=>{
+  try{await navigator.clipboard.writeText(payload());}
+  catch(e){const t=document.createElement('textarea');t.value=payload();
+    document.body.appendChild(t);t.select();document.execCommand('copy');
+    t.remove();}
+  flash('복사했다');
+};
+function apply(txt){
+  let j;
+  try{j=JSON.parse(txt);}catch(e){alert('파일을 읽지 못했다.');return;}
+  const d=j.data||j;
+  let n=0;
+  for(const k in d){try{localStorage.setItem(k,d[k]);n++;}catch(e){}}
+  draw(); flash(n+' 항목 되돌렸다');
+}
+document.getElementById('restore').onclick=()=>{
+  const p=document.getElementById('paste').value.trim();
+  if(p){apply(p);return;}
+  const f=document.getElementById('file').files[0];
+  if(!f){alert('파일을 고르거나 내용을 붙여 넣어라.');return;}
+  const r=new FileReader();
+  r.onload=()=>apply(r.result);
+  r.readAsText(f);
+};
+draw();
+</script>
+</body></html>
