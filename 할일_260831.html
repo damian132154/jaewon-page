@@ -1,0 +1,306 @@
+<!doctype html><html lang="ko"><head>
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>할일 08/31</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap">
+
+<style>
+:root{
+  --ground:#FAF9F7; --card:#FFFFFF; --sunk:#F2F1ED;
+  --ink:#1B1E24; --ink-2:#5B6472; --ink-3:#8A93A0; --rule:#E3E1DB;
+  --accent:#0E7C86; --accent-soft:#E2F1F2;
+  --furnace:#A85A12; --furnace-soft:#FAEEE0;
+  --stop:#9B2C2C; --stop-soft:#FBEAEA;
+  --shadow:0 1px 2px rgba(27,30,36,.05), 0 8px 24px -16px rgba(27,30,36,.18);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --ground:#131519; --card:#1A1D22; --sunk:#22262C;
+  --ink:#E8E9EB; --ink-2:#A3ABB6; --ink-3:#727C88; --rule:#2C3037;
+  --accent:#4FB8C0; --accent-soft:#123037;
+  --furnace:#D89552; --furnace-soft:#33251A;
+  --stop:#E08585; --stop-soft:#331A1A;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  --ground:#131519; --card:#1A1D22; --sunk:#22262C;
+  --ink:#E8E9EB; --ink-2:#A3ABB6; --ink-3:#727C88; --rule:#2C3037;
+  --accent:#4FB8C0; --accent-soft:#123037;
+  --furnace:#D89552; --furnace-soft:#33251A;
+  --stop:#E08585; --stop-soft:#331A1A;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans KR",-apple-system,"Segoe UI",sans-serif;
+  line-height:1.55; -webkit-font-smoothing:antialiased}
+.wrap{max-width:840px; margin:0 auto; padding:0 20px 96px}
+header{border-bottom:1px solid var(--rule); background:var(--ground); position:sticky; top:0; z-index:20}
+.hd{max-width:840px; margin:0 auto; padding:16px 20px 14px; display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+.date{font-family:"IBM Plex Mono",monospace; font-size:26px; font-weight:600; letter-spacing:-.02em}
+.dow{font-size:14px; color:var(--ink-2); font-weight:500}
+.spacer{flex:1}
+.count{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--ink-2); font-variant-numeric:tabular-nums}
+.count b{color:var(--accent); font-weight:600}
+.save{font-size:11.5px; padding:2px 9px; border-radius:20px; font-weight:600;
+  color:var(--ink-3); background:var(--sunk)}
+.save.ok{color:var(--accent); background:var(--accent-soft)}
+.save.bad{color:var(--stop); background:var(--stop-soft)}
+
+.block{margin-top:36px}
+.block-hd{display:flex; align-items:center; gap:12px; margin-bottom:13px}
+.tag{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+  color:var(--accent); background:var(--accent-soft); padding:3px 9px; border-radius:3px}
+.tag.warn{color:var(--furnace); background:var(--furnace-soft)}
+.tag.stop{color:var(--stop); background:var(--stop-soft)}
+.block-hd h2{margin:0; font-size:15px; font-weight:600; letter-spacing:-.01em}
+.block-hd .thin{flex:1; height:1px; background:var(--rule)}
+
+/* 장비 상태 */
+.rigs{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:9px}
+.rig{background:var(--card); border:1px solid var(--rule); border-radius:7px; padding:12px 14px; box-shadow:var(--shadow)}
+.rig.bad{border-color:var(--stop); background:var(--stop-soft)}
+.rig .nm{font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:600}
+.rig .st{font-size:12.5px; margin-top:4px; color:var(--ink-2)}
+.rig.bad .st{color:var(--stop); font-weight:500}
+
+ol.tasks{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px}
+.task{background:var(--card); border:1px solid var(--rule); border-radius:7px;
+  padding:13px 15px 13px 13px; display:flex; gap:12px; align-items:flex-start;
+  box-shadow:var(--shadow); transition:opacity .18s}
+.task.now{border-color:var(--accent); background:var(--accent-soft)}
+.task.ask{border-color:var(--furnace); background:var(--furnace-soft)}
+.box{flex:none; width:19px; height:19px; margin-top:2px; border-radius:4px;
+  border:1.5px solid var(--ink-3); background:transparent; cursor:pointer;
+  display:grid; place-items:center; padding:0; transition:.15s}
+.box:hover{border-color:var(--accent)}
+.box:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.box svg{width:11px; height:11px; opacity:0; transition:opacity .15s}
+.task.done .box{background:var(--accent); border-color:var(--accent)}
+.task.done .box svg{opacity:1}
+.task.done{opacity:.42}
+.task.done .t-main{text-decoration:line-through}
+.t-body{flex:1; min-width:0}
+.t-main{font-size:15px; font-weight:500}
+.t-sub{font-size:13px; color:var(--ink-2); margin-top:3px}
+.run{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:14px}
+.spec{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink-2);
+  background:var(--sunk); border-radius:4px; padding:7px 10px; margin-top:8px; display:block}
+
+.tablecard{margin-top:13px; background:var(--card); border:1px solid var(--rule);
+  border-radius:7px; box-shadow:var(--shadow); overflow:hidden}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse; width:100%; min-width:620px; font-variant-numeric:tabular-nums}
+th,td{padding:9px 11px; text-align:left; font-size:13px; white-space:nowrap}
+thead th{font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--ink-3); border-bottom:1px solid var(--rule); background:var(--sunk)}
+tbody td{border-bottom:1px solid var(--rule)}
+tbody tr:last-child td{border-bottom:0}
+td.rid{font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--accent)}
+td.cond{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-2)}
+.pill{font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; display:inline-block}
+.pill.dead{color:var(--stop); background:var(--stop-soft)}
+.pill.chk{color:var(--furnace); background:var(--furnace-soft)}
+.pill.plan{color:var(--accent); background:var(--accent-soft)}
+
+.note{background:var(--card); border:1px solid var(--rule); border-left:3px solid var(--furnace);
+  border-radius:7px; padding:13px 15px; margin-top:11px; font-size:13.5px; color:var(--ink-2)}
+.note b{color:var(--ink)}
+.foot{margin-top:32px; padding-top:18px; border-top:1px solid var(--rule); font-size:13px; color:var(--ink-2)}
+.reset{margin-top:14px; background:none; border:1px solid var(--rule); color:var(--ink-3);
+  font-family:inherit; font-size:12px; padding:5px 11px; border-radius:5px; cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:520px){.date{font-size:22px}.wrap{padding:0 15px 72px}.hd{padding:14px 15px 12px}}
+
+.ogs{display:flex; flex-direction:column; gap:8px}
+.og{background:var(--card); border:1px solid var(--rule); border-left:3px solid var(--furnace);
+  border-radius:7px; padding:11px 14px; box-shadow:var(--shadow)}
+.ogh{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap}
+.ogn{font-size:14.5px; font-weight:600; color:var(--ink)}
+.ogv{font-size:11.5px; font-weight:600; color:var(--accent);
+  background:var(--accent-soft); padding:2px 9px; border-radius:20px}
+.ogm{font-size:13px; color:var(--ink-2); margin-top:5px; line-height:1.55}
+
+
+/*jw-extra-5*/
+.spec{white-space:pre-wrap !important; line-height:1.8 !important}
+.ogs{display:flex; flex-direction:column; gap:8px}
+.og{background:var(--card); border:1px solid var(--rule); border-left:3px solid var(--furnace);
+  border-radius:7px; padding:11px 14px; box-shadow:var(--shadow)}
+.ogh{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap}
+.ogn{font-size:14.5px; font-weight:600; color:var(--ink)}
+.ogv{font-size:11.5px; font-weight:600; color:var(--accent);
+  background:var(--accent-soft); padding:2px 9px; border-radius:20px}
+.ogm{font-size:13px; color:var(--ink-2); margin-top:5px; line-height:1.55}
+/* 런 표 — 가로 스크롤 없이 화면 폭에 맞춘다 */
+.tablecard .scroll{overflow-x:visible}
+.tablecard table{table-layout:fixed; width:100%}
+.tablecard th,.tablecard td{vertical-align:top; white-space:normal;
+  word-break:keep-all; line-height:1.5}
+.tablecard th:nth-child(1),.tablecard td.rid{width:11%}
+.tablecard th:nth-child(2),.tablecard td.sub2{width:19%}
+.tablecard th:nth-child(3),.tablecard td.cond{width:48%}
+.tablecard th:nth-child(4){width:22%}
+td.sub2{font-size:12.5px; color:var(--ink-2)}
+td.cond{font-family:ui-monospace,Consolas,monospace; font-size:12px;
+  color:var(--ink-2)}
+.pill{white-space:normal; display:inline-block; line-height:1.45}
+/*end*/
+</style>
+
+<header><div class="hd">
+  <span class="date">26.08.31</span><span class="dow">월요일</span>
+  <span class="spacer"></span>
+  <span class="count"><b id="n">0</b> / 25 완료</span>
+  <span class="save" id="sv">저장 확인 중</span>
+</div></header>
+
+<div class="wrap">
+
+<div class="block"><div class="block-hd">
+  <span class="tag stop">장비</span><h2>지금 상태</h2><span class="thin"></span></div>
+<div class="rigs"><div class="rig bad"><div class="nm">HCVD</div><div class="st">나사 마모로 <b>정지</b> — 퍼블 회신 대기</div></div>
+<div class="rig"><div class="nm">LCVD</div><div class="st">정상 · 대기</div></div>
+<div class="rig"><div class="nm">APCVD</div><div class="st">정상 · <b>HCVD 와 무관</b> — 바로 걸 수 있다</div></div></div>
+<div class="note"><b>순서가 판 수보다 앞선다.</b> Annealing CVD#001 OM 으로 (111) 영역을 확인한 다음에 LCVD#111 기판을 자른다. HCVD 는 부품 교체 전까지 못 쓰지만, <b>Annealing CVD#002 는 APCVD 라 지금 바로 걸 수 있다.</b> 24 시간짜리라 먼저 거는 쪽이 이득이다.</div>
+</div>
+
+<div class="block"><div class="block-hd"><span class="tag">하루</span><h2>오늘 순서</h2><span class="thin"></span></div><div class="tablecard" style="padding:14px 18px"><div class="note" style="margin:0 0 10px">합성은 앞 15 분만 손이 간다 — 로딩 · 진공 확인 · 시작. 그 뒤 승온 · 성장 · 냉각은 자리를 비워도 된다. 끝날 때만 맞춰 끄면 된다. HCVD 는 나사 때문에 못 쓴다.</div></div></div>
+
+<div class="block"><div class="block-hd"><span class="tag">오늘</span><h2>시간 순 — 위에서 아래로</h2><span class="thin"></span></div><ol class="tasks">
+  <li class="task now" data-id="om"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">① 완료 — Annealing CVD#001 OM</div><div class="t-sub">어디가 Ni(111) 인지 확인. 균일한 영역을 잘라 LCVD#111 · #112 · #113 기판으로 썼다.</div></div></li>
+  <li class="task now" data-id="anneal002"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">② 진행 중 — Annealing CVD#002 (APCVD · 16 h)</div><div class="t-sub">HCVD 와 무관한 별도 장비. 수소 잔여량 때문에 16 h (H2 96 L). 내일 Annealing CVD#003 을 24 h 로 걸어 논문 조건과 맞춘다.</div><span class="spec">1350 (set 1390) °C · 16 h. · H2 100 + Ar 100 · 상압 (760 torr) · 매달기</span></div></li>
+  <li class="task now" data-id="lcvd111"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">③ 진행 중 — LCVD#111 (냉각 중, 18:10 언로딩)</div><div class="t-sub">LCVD#110 에서 Ar 10 만 더한 것. 경열 선배님 sapphire 가 Ar 단독으로 잘 됐다는 이야기가 근거.</div><span class="spec">BZ 0.022 · H2 10 · Ar 10 · 10 W · 1150 (set 1175) °C · 10 min</span></div></li>
+  <li class="task now" data-id="sem-xps"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">④ 17:00 ~ 18:00 — SEM : HCVD#083 · LCVD#110</div><div class="t-sub">둘 다 실제 1150 으로 맞춰 걸었으니 장비 차이만 남은 비교다. LCVD#111 은 냉각이 안 끝나 SEM 은 못 넣는다 (XPS 만).</div></div></li>
+  <li class="task now" data-id="lcvd112"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">⑤ 18:10 — LCVD#111 언로딩 → LCVD#112 걸기</div><div class="t-sub">LCVD#111 에서 H2 만 뺀다 — Ar 단독. 걸어놓고 바로 XPS 하러 가면 된다 (승온 중엔 자리를 비워도 된다). 19:10 성장 끝 → 냉각 3 h → 22:10 언로딩.</div><span class="spec">BZ 0.022 · H2 0 · Ar 10 · 10 W · 1150 (set 1175) °C · 10 min</span></div></li>
+  <li class="task now" data-id="xps"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">⑥ 18:00 — XPS 걸기 : HCVD#083 · LCVD#110  (두 판만)</div><div class="t-sub">결과는 시간이 걸려 내일 오전에 나온다. 오늘은 거는 것까지. LCVD#111 XPS 는 내일로 미뤘으니 기다릴 필요 없다. B 1s · N 1s.</div></div></li>
+  <li class="task now" data-id="pmma"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">⑦ 19:30 ~ 20:30 — PMMA 코팅 → FeCl3 침지 : HCVD#083 · LCVD#110  두 판만</div><div class="t-sub">LCVD#111 은 절대 담그지 말 것 — 내일 XPS 를 찍어야 한다. PMMA 를 바르면 표면이 덮여 XPS 가 안 된다. #111 은 내일 XPS 끝난 뒤에.</div></div></li>
+  <li class="task ask" data-id="pumps"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">⑧ 2층 실험실 펌프 옮기기 — 세미나실 앞으로 (오늘 안에)</div><div class="t-sub">널부러져 있는 펌프들. 9/2 벡스코 방문 전에 한곳에 모아두면 수거가 쉬워진다. MVP24 4대가 이 안에 있으니 따로 표시해둘 것.</div></div></li>
+  <li class="task" data-id="lcvd113"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">⑨ 밤 — LCVD#113 : Ar 단독 재실험 (프로토콜 수정)</div><div class="t-sub"><b>#112 를 다시 돌린다.</b> #112 는 처음부터 H2 를 안 흘려 표면에 NiO 가 남았을 수 있다 — 그러면 H2 를 뺀 효과가 기상 분해 때문인지 표면 산화 때문인지 구별이 안 된다. || 고친 절차 — <b>H2 10 + Ar 10 으로 어닐링 → holding 에서 H2 끄기 → 성장은 Ar 단독.</b> 표면은 금속 Ni, 기상에는 H2 없음. || 조건은 #112 와 같다 (BZ 0.022 · Ar 10 · 10 W · 실제 1150 °C · 10 min). 성장까지만 하고 밤새 냉각 → 9/1 아침 언로딩.</div><span class="spec">BZ 0.022 · H2 0 · Ar 10 · 10 W · 1150 (set 1175) °C · 10 min · 어닐링만 H2 · 성장 Ar 단독</span></div></li>
+</ol></div>
+
+<div class="block"><div class="block-hd"><span class="tag warn">보고</span><h2>교수님께 — 오늘 안에</h2><span class="thin"></span></div><ol class="tasks">
+  <li class="task ask" data-id="mail-report"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">중간보고 메일</div><div class="t-sub">장비 파손 · Ni(111) 진단 · 오늘 계획. 파손부 사진 첨부.</div><span class="spec">01_daily_report/기록/2026-08-31/리포트/중간보고_260831.txt</span></div></li>
+  <li class="task ask" data-id="mail-nifoil"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">Ni foil 구매 요청 메일</div><div class="t-sub">Alfa Aesar Puratronic 99.994% · 0.1 mm · 100×100 mm · 1,033,780 원</div><span class="spec">01_daily_report/기록/2026-08-31/리포트/구매요청_Nifoil_260831.txt</span></div></li>
+</ol></div>
+
+<div class="block"><div class="block-hd"><span class="tag">내일</span><h2>이어지는 것</h2><span class="thin"></span></div><ol class="tasks">
+  <li class="task" data-id="tmr-run"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">08:30 — Annealing CVD#003 (APCVD · 24 h)</div><div class="t-sub">가장 먼저 걸어야 24 h 가 돈다. 걸어두면 그 뒤로는 알아서 돈다. HCVD#085 · #086 은 나사가 풀려야 걸 수 있어 보류.</div><span class="spec">1350 (set 1390) °C · 24 h. · H2 100 + Ar 100 · 상압 (760 torr) · 매달기</span></div></li>
+  <li class="task now" data-id="lcvd114"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">09:00 — LCVD#114 로딩 · 승온</div><div class="t-sub">#112(H2− / 10W) 와 #113(H2+ / 30W) 를 잇는 2×2 의 마지막 칸. 이걸로 H2 와 플라즈마 파워가 각각 무엇을 하는지 갈린다. 14:00 성장 끝 → 냉각 3 h.</div><span class="spec">BZ 0.022 · H2 10 · Ar 10 · 30 W · 1150 (set 1175) °C · 10 min</span></div></li>
+  <li class="task" data-id="tmr-transfer"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">10:00 — 전사 : HCVD#083 · LCVD#110</div><div class="t-sub">어제 저녁 FeCl3 침지분. 밤새 식각되므로 오전에 건진다. 늦으면 과식각.</div></div></li>
+  <li class="task" data-id="tmr-raman"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">12:00 ~ 13:30 — Raman + OM : HCVD#083 · LCVD#110  (예약)</div><div class="t-sub">장비에 OM 이 붙어 있으니 한자리에서. 덮인 곳을 찾아 그 지점에 쏠 것. hBN E2g 1366 cm-1, FWHM 도 같이. 이 시간에 LCVD 는 승온·성장 중.</div></div></li>
+  <li class="task" data-id="lcvd115"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">17:00 — LCVD#114 언로딩 → LCVD#115 걸기</div><div class="t-sub">총 유량만 2배. 비율은 그대로라 농도는 같고 체류시간만 절반이다. 분해가 공급량에서 오는지 머무는 시간에서 오는지 가른다.</div><span class="spec">BZ 0.022 · H2 0 · Ar 10 · 30 W · 1150 (set 1175) °C · 10 min · 어닐링만 H2 · 성장 Ar 단독</span></div></li>
+  <li class="task" data-id="lcvd116"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">21:00 — LCVD#115 언로딩 → LCVD#116 걸기 (2 min · 밤새 냉각)</div><div class="t-sub">#111 에서 시간만 10 → 2 min. 2 분에 밀도가 비슷하면 핵생성이 순식간에 포화된 것 — 공급·분해를 줄여야 한다. 훨씬 적으면 핵이 계속 생기는 중이라 시간 제어가 먹힌다. 성장만 하고 밤새 냉각.</div><span class="spec">BZ 0.022 · H2 20 · Ar 20 · 10 W · 1150 (set 1175) °C · 10 min</span></div></li>
+  <li class="task" data-id="tmr-anneal2"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">아침 — Annealing CVD#002 샘플 확인</div><div class="t-sub">16 h 걸었으니 아침에 끝난다. OM 으로 결정립·압연조직 확인 — #001 보다 나아졌는지. LCVD 는 #116 까지 전부 #001 포일을 쓰므로 #002 는 다음 시리즈용이다.</div></div></li>
+  <li class="task" data-id="tmr-xps-data"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">오전 — 어제 찍은 XPS 결과 받기 (HCVD#083 · LCVD#110)</div><div class="t-sub">8/31 저녁에 걸었고 결과가 나오는 데 시간이 걸려 오전에 나온다. B 1s · N 1s. 받으면 리포트에 넣을 것 — SEM 슬라이드의 '조성은 XPS 와 맞춰 봐야 BN 인지 안다' 가 이걸로 풀린다.</div></div></li>
+  <li class="task" data-id="tmr-meas"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">LCVD#111 · #112 · #113 세 판 한꺼번에 SEM · XPS</div><div class="t-sub">세 판이 한 세트다. #111 Ar+H2 10W / #112 Ar 단독 10W / #113 Ar+H2 30W. 같은 날 같은 장비로 찍어야 장비 편차가 안 섞인다. LCVD 냉각 3 h 사이에 넣으면 딱 맞는다.</div></div></li>
+  <li class="task" data-id="tmr-fecl3"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">저녁 — 측정 끝난 뒤 PMMA → FeCl3 : LCVD#111 · #112 · #113</div><div class="t-sub">SEM·XPS 를 먼저 끝내고. PMMA 를 바르면 XPS 를 못 찍는다.</div></div></li>
+  <li class="task" data-id="tmr-jihwan"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">지환이 CVD Tube 도와주기</div><div class="t-sub">도와주기로 함.</div></div></li>
+  <li class="task" data-id="tmr-screw"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">퍼블 회신 오면 — HCVD 나사 · 로딩부 처리</div><div class="t-sub">메일 답장이 아직 없다. 방문해서 뽑아줄 수도 있으니 그 전엔 손대지 말 것.</div></div></li>
+  <li class="task" data-id="tmr-part"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">퍼블 견적 오면 — HCVD 로딩부 부품 2 EA 구매 요청</div><div class="t-sub">예비 1 개 포함이 근거.</div></div></li>
+  <li class="task" data-id="ni111"><button class="box" aria-label="완료"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.4L11 2.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="t-body"><div class="t-main">Ni(111) 이 왜 덜 만들어졌나 — 결론</div><div class="t-sub">온도는 이미 맞았다 (실제 1350 = 논문). 남는 변수는 가스뿐. Annealing CVD#002(16h) 와 #003(24h) 이 이 가설의 검증이다.</div></div></li>
+</ol></div>
+
+<div class="block"><div class="block-hd"><span class="tag">5건</span><h2>HCVD</h2><span class="thin"></span></div><div class="tablecard"><div class="scroll"><table><thead><tr><th>Run</th><th>기판</th><th>조건</th><th>상태</th></tr></thead><tbody><tr><td class="rid">HCVD#083</td><td class="sub2">Our Ni(111)</td><td class="cond">BZ 0.05 · H2 10 · 10 W · 1150 (set 1225) °C · 10 min</td><td><span class="pill chk">8/29 완료 · 측정 대기</span></td></tr>
+<tr><td class="rid">HCVD#084</td><td class="sub2">c-plane sapphire (지환)</td><td class="cond">BZ 0.1 · H2 0 · Ar 10 · 30 W · 1220 (set 1295) °C · 30 min</td><td><span class="pill dead">낙하 — 무효</span></td></tr>
+<tr><td class="rid">HCVD#085</td><td class="sub2">c-plane sapphire (지환)</td><td class="cond">BZ 0.1 · H2 0 · Ar 10 · 30 W · 1220 (set 1295) °C · 30 min</td><td><span class="pill dead">보류 · sapphire 재시도</span></td></tr>
+<tr><td class="rid">HCVD#086</td><td class="sub2">Our Ni(111)</td><td class="cond">BZ 0.05 · H2 10 · Ar 10 · 10 W · 1150 (set 1225) °C · 10 min</td><td><span class="pill dead">보류 · LCVD#111 매칭 — 장비 비교</span></td></tr>
+<tr><td class="rid">HCVD Annealing</td><td class="sub2">— (시료 없음)</td><td class="cond">1000 (set 1075) °C · 5 min. · Ar 10</td><td><span class="pill dead">정비 · 정비 — 로딩 로드 교체 후 tube 컨디셔닝</span></td></tr></tbody></table></div></div></div>
+
+<div class="block"><div class="block-hd"><span class="tag">6건</span><h2>LCVD</h2><span class="thin"></span></div><div class="tablecard"><div class="scroll"><table><thead><tr><th>Run</th><th>기판</th><th>조건</th><th>상태</th></tr></thead><tbody><tr><td class="rid">LCVD#110</td><td class="sub2">Our Ni(111)</td><td class="cond">BZ 0.022 · H2 10 · 10 W · 1150 (set 1175) °C · 10 min</td><td><span class="pill chk">8/29 완료 · 측정 대기</span></td></tr>
+<tr><td class="rid">LCVD#111</td><td class="sub2">Ni(111) · Annealing CVD#001</td><td class="cond">BZ 0.022 · H2 10 · Ar 10 · 10 W · 1150 (set 1175) °C · 10 min</td><td><span class="pill plan">오늘 · Ar 추가 — 새 기준</span></td></tr>
+<tr><td class="rid">LCVD#112</td><td class="sub2">Ni(111) · Annealing CVD#001</td><td class="cond">BZ 0.022 · H2 0 · Ar 10 · 10 W · 1150 (set 1175) °C · 10 min</td><td><span class="pill plan">오늘 · H2 제거 — Ar 만 (H2 어닐링 없음 · NiO 가능 · 기준 불가)</span></td></tr>
+<tr><td class="rid">LCVD#113</td><td class="sub2">Ni(111) · Annealing CVD#001</td><td class="cond">BZ 0.022 · H2 0 · Ar 10 · 10 W · 1150 (set 1175) °C · 10 min · 어닐링만 H2 · 성장 Ar 단독</td><td><span class="pill plan">오늘 · #112 재실험 — H2 어닐링 후 Ar 단독 성장 (NiO 배제)</span></td></tr>
+<tr><td class="rid">LCVD#114</td><td class="sub2">Ni(111) · Annealing CVD#001</td><td class="cond">BZ 0.022 · H2 10 · Ar 10 · 30 W · 1150 (set 1175) °C · 10 min</td><td><span class="pill plan">내일 · 2×2 : H2 있음 x 30 W — 플라즈마 3 배</span></td></tr>
+<tr><td class="rid">LCVD#115</td><td class="sub2">Ni(111) · Annealing CVD#002</td><td class="cond">BZ 0.022 · H2 0 · Ar 10 · 30 W · 1150 (set 1175) °C · 10 min · 어닐링만 H2 · 성장 Ar 단독</td><td><span class="pill plan">내일 · 2×2 : H2 없음 x 30 W — 어닐링만 H2, 성장은 Ar 단독 · 기판 #002 로 바뀜</span></td></tr></tbody></table></div></div></div>
+
+<div class="block"><div class="block-hd"><span class="tag">3건</span><h2>Annealing CVD</h2><span class="thin"></span></div><div class="tablecard"><div class="scroll"><table><thead><tr><th>Run</th><th>기판</th><th>조건</th><th>상태</th></tr></thead><tbody><tr><td class="rid">Annealing CVD#001</td><td class="sub2">Ni foil</td><td class="cond">1350 (set 1390) °C · 22 h. · H2 10</td><td><span class="pill chk">8/29 완료 · 측정 대기</span></td></tr>
+<tr><td class="rid">Annealing CVD#002</td><td class="sub2">Ni foil</td><td class="cond">1350 (set 1390) °C · 16 h. · H2 100 Ar 100</td><td><span class="pill plan">오늘 · Nature 606,88 재현 — 가스만 변경</span></td></tr>
+<tr><td class="rid">Annealing CVD#003</td><td class="sub2">Ni foil</td><td class="cond">1350 (set 1390) °C · 24 h. · H2 100 Ar 100</td><td><span class="pill plan">내일 · Nature 606,88 완전 재현 — 24 h</span></td></tr></tbody></table></div></div></div>
+
+<div class="note">이 표들은 <b>런표.xlsx 에서 자동으로 만든다.</b>
+값을 고칠 일이 있으면 런표를 고치고 다시 생성할 것. 여기에 직접 적지 않는다.
+온도는 <b>실제 (set 설정)</b> — 오프셋 APCVD 40 · HCVD 75 · LCVD 25 °C.
+HCVD Annealing 은 같은 장비이므로 HCVD 표에 있다.</div>
+
+<div class="block"><div class="block-hd"><span class="tag warn">6건</span><h2>발주 · 수리 · 회신 대기</h2><span class="thin"></span></div><div class="ogs"><div class="og"><div class="ogh"><span class="ogn">Ni foil 1 EA — 발주 진행중</span><span class="ogv">다다랩</span></div><div class="ogm">Alfa Aesar Puratronic 99.994% · 0.1 mm · 100×100 mm · 1,033,780원. 오늘 시작</div></div>
+<div class="og"><div class="ogh"><span class="ogn">MVP24 4 EA — 점검 및 수리, 모레 오후 방문 예정</span><span class="ogv">벡스코</span></div><div class="ogm">오지윤 010-5264-4310. 대당 수리비 · 기간 · 진단비 · 보증 받아둘 것</div></div>
+<div class="og"><div class="ogh"><span class="ogn">MVP24 신품 1 EA — 구매요청 대기</span><span class="ogv">벡스코</span></div><div class="ogm">1,936,000원 (VAT 포함). 9/2 수리 견적 나온 뒤 교수님께</div></div>
+<div class="og"><div class="ogh"><span class="ogn">HCVD 로딩부 부품 2 EA — 견적서 대기</span><span class="ogv">퍼블</span></div><div class="ogm">로드까지 포함인지, 나사 여분도 들어가는지 확인</div></div>
+<div class="og"><div class="ogh"><span class="ogn">HCVD 나사 제거 방법 — 회신 대기 (8/31 답장 없음)</span><span class="ogv">퍼블</span></div><div class="ogm">방문해서 뽑아줄 수도 있으니 그 전엔 손대지 말 것. 먼저 건드리면 되돌릴 수 없다. 나사 여분 견적 포함 여부도 함께 확인</div></div>
+<div class="og"><div class="ogh"><span class="ogn">miscut sapphire 25 pcs — 오늘 견적 요청 발송, 회신 대기</span><span class="ogv">(주)하이쏠라</span></div><div class="ogm">2인치 c-plane DSP · C/A 1.0° ±0.05° toward A-axis &lt;11-20&gt; · 430 µm · epi-ready. 0.2° / 2° 견적도 함께 요청. 표준 GaN용 C/M 이 아니라는 점 명시함. 회신 오면 각도 조합 다시 정할 것</div></div></div></div>
+
+<div class="block"><div class="block-hd"><span class="tag">7건</span><h2>기타 · 기억할 일</h2><span class="thin"></span></div><div class="ogs"><div class="og"><div class="ogh"><span class="ogn">HCVD 정지 — 로딩부 나사 마모 (8/30~)</span></div><div class="ogm">무슨 일이었나 — 8/30 HCVD#084 (sapphire · BZ 0.1 · Ar 10 · 30 W · 실제 1220 °C · 30 min) 를 걸다가 시료가 낙하해 런이 무효가 됐다. 원인은 로딩부 나사 마모로 로드가 제대로 물리지 않는 것. 지금 HCVD 는 정지 상태다. || 방침 (9/1 변경) — 퍼블 회신이 하루째 없고 HCVD 는 이틀 서 있다. 직접 시도한다. 다만 경계선은 하나 — 나사머리를 뭉개지 않는 선까지. 뭉개는 순간(캠아웃) 업체 방문으로도 못 뽑고 로딩부를 통째로 갈아야 한다. 드라이버가 헛돌기 시작하면 그 자리에서 멈춘다. 지환이 CVD Tube 작업이 저녁에 있으니 그때 같이 본다 — 둘이면 하나가 누르고 하나가 돌릴 수 있다. || 진행 — ① 나사 제거 방법 회신 대기 (8/31 메일, 아직 답 없음) ② 로딩부 부품 2 EA 견적 대기 (예비 1 개 포함이 근거, 나사 여분 포함 여부 확인) || 복구 순서 — 부품 교체 → HCVD Annealing (실제 1000 °C · Ar 10 · 5 min) 으로 tube 컨디셔닝 → HCVD#085 (sapphire 재시도, #084 와 같은 조건) → HCVD#086 (Ni(111), LCVD#111 매칭 · 장비 비교) || 지금 막히는 것 — HCVD 가 서 있는 동안 고온 Thermal 빈 데이터와 TEM 시료가 못 나온다. LCVD 와 APCVD 는 무관하게 돌아가므로 그쪽으로 채우는 중.</div></div>
+<div class="og"><div class="ogh"><span class="ogn">H2 실린더 잔량 부족 — 내일 12~14 시 교체 예정</span></div><div class="ogm">교체 중에는 CVD 3 대(HCVD · LCVD · APCVD) 가 전부 정지여야 한다 — 한 대라도 돌면 안 됨. || Annealing CVD#003 은 H2 100 sccm 을 24 시간 흘려야 해서 잔량으로 못 간다. 교체 후 14:30 에 건다. LCVD#115 (H2 20) · #116 (H2 10) 도 교체 뒤 일정. 오전 LCVD#114 는 H2 0 · Ar 단독이라 영향 없다. || 확인할 것 — LCVD 가 같은 H2 라인을 쓰는지. 같으면 밤 21 시 #116 까지 잔압이 버티는지 아침에 한 번 보고 판단한다.</div></div>
+<div class="og"><div class="ogh"><span class="ogn">2층 N2 데시케이터 신규 설치 — 팀리더 회의 안건</span></div><div class="ogm">목표는 2층에 데시케이터를 새로 놓는 것. 가스원을 실린더 대신 3층 제너레이터로 끌어오면 장기적으로 훨씬 싸다는 판단. 선행 — ① 순도 측정 (전문가 초빙, 실린더 vs 3층 제너레이터. 실린더 순도 의심) ② 3층→2층 가스라인 공사 가능 여부 ③ 사용량 확인. 윤정이가 내일 진행사항 확인</div></div>
+<div class="og"><div class="ogh"><span class="ogn">XRD 수리 — 9월 초 예정</span></div><div class="ogm">수리되면 Annealing CVD#001 · #002 · #003 한 번에 측정. EBSD·LEED 되는지도 알아볼 것</div></div>
+<div class="og"><div class="ogh"><span class="ogn">지환이 CVD Tube 도와주기 — 내일</span></div><div class="ogm">내일 도와주기로 함. 나사가 오후에 안 뽑혔으면 이때 둘이 다시 본다</div></div>
+<div class="og"><div class="ogh"><span class="ogn">스크류 익스트랙터 구입 — 9/1 시도 전에 확보</span></div><div class="ogm">5천~1만원. 상비품으로 두면 다음에 안 막힌다</div></div>
+<div class="og"><div class="ogh"><span class="ogn">문헌 — 매일 아침 8 시 자동, 손댈 일 없음</span></div><div class="ogm">매일 신착은 그날 리포트 폴더에 YYMMDD_신착문헌.html 로 들어온다 — 하루짜리라 그날 것들과 같이 둔다. || 월간 · 상반기는 04_문헌/기간정리/ 에 쌓는다 (2608_월간.html · 2026_상반기.html) — 두고두고 보는 자료라 날짜 폴더에 묻히면 안 된다. || 월간은 달 바뀐 날 아침에 한 번 훑는다</div></div></div></div>
+
+<div class="note">끝나면 <b>01_daily_report/진행중.yaml</b> 에서 그 줄을 지운다. 섹션은 <b>## 이름</b> 으로 나눈다.</div>
+
+<div class="foot">
+  오늘 HCVD 가 멈춘 만큼 LCVD#112 · #113 · HCVD#086 은 내일로 넘어간다.
+  줄어든 판 수보다 <b>Annealing CVD#002 를 지금 거는 것</b>이 중요하다 — 16 시간이 걸린다.
+  그리고 <b>XPS(18 시) 를 PMMA 코팅보다 먼저</b> 해야 한다. 순서가 뒤집히면 XPS 를 못 찍는다.
+  <br><button class="reset" id="rs">체크 초기화</button>
+</div>
+</div>
+
+<script>
+(function(){
+  var KEY='jw-runsheet-260831';           // 이 키는 더 이상 바꾸지 않는다
+  var OLD=["om","lcvd111","anneal002","hcvd085","mvp24","ni111","sem","xrd"];   // 예전 index 저장분 이전용
+  var tasks=[].slice.call(document.querySelectorAll('.task'));
+  var n=document.getElementById('n'), sv=document.getElementById('sv');
+
+  var ok=false;
+  try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); ok=true; }catch(e){ ok=false; }
+
+  function stamp(){
+    var d=new Date();
+    sv.textContent='저장됨 '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+    sv.className='save ok';
+  }
+  if(!ok){ sv.textContent='저장 안 됨 — 브라우저가 막고 있음'; sv.className='save bad'; }
+
+  var state={};
+  if(ok){
+    try{
+      var raw=JSON.parse(localStorage.getItem(KEY)||'null');
+      if(Array.isArray(raw)){                        // 옛 형식 → id 형식으로
+        raw.forEach(function(v,i){ if(v && OLD[i]) state[OLD[i]]=1; });
+      } else if(raw && typeof raw==='object'){ state=raw; }
+    }catch(e){ state={}; }
+  }
+
+  function paint(){
+    var c=0; tasks.forEach(function(t){ if(t.classList.contains('done')) c++; });
+    n.textContent=c;
+  }
+  function save(){
+    if(!ok) return;
+    try{
+      var o={};
+      tasks.forEach(function(t){ if(t.classList.contains('done')) o[t.dataset.id]=1; });
+      localStorage.setItem(KEY, JSON.stringify(o)); stamp();
+    }catch(e){ sv.textContent='저장 실패'; sv.className='save bad'; }
+  }
+  tasks.forEach(function(t){
+    if(state[t.dataset.id]) t.classList.add('done');
+    t.querySelector('.box').addEventListener('click',function(){
+      t.classList.toggle('done'); paint(); save();
+    });
+  });
+  document.getElementById('rs').addEventListener('click',function(){
+    tasks.forEach(function(t){ t.classList.remove('done') }); paint(); save();
+  });
+  paint();
+  if(ok){ Object.keys(state).length ? stamp()
+        : (sv.textContent='저장 준비됨', sv.className='save ok'); }
+})();
+</script>
+</body></html>
