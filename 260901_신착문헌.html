@@ -161,10 +161,30 @@ header{border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(
       if(k!==Q&&!(k in j.d)&&(j.x||[]).indexOf(k)<0)
         mine[k]=localStorage.getItem(k);
     }
-    for(var k2 in j.d){
-      if(localStorage.getItem(k2)!==j.d[k2])changed=true;
-      setI.call(localStorage,k2,j.d[k2]);
+    // 서버 값으로 무조건 덮지 않는다. 양쪽이 JSON 객체면 '합친다'.
+    // (예전엔 서버가 원본이라 브라우저에만 있던 체크가 통째로 날아갔다)
+    function merge(a,b){
+      try{
+        var A=JSON.parse(a), B=JSON.parse(b);
+        if(A&&B&&typeof A==='object'&&typeof B==='object'&&
+           !Array.isArray(A)&&!Array.isArray(B)){
+          var o={}; for(var x in A)o[x]=A[x];
+          for(var y in B)o[y]=B[y];   // 브라우저 쪽이 이긴다
+          return JSON.stringify(o);
+        }
+      }catch(e){}
+      return null;
     }
+    var back={};
+    for(var k2 in j.d){
+      var cur=localStorage.getItem(k2);
+      var m=(cur===null)?null:merge(j.d[k2],cur);
+      var val=(m!==null)?m:(cur===null?j.d[k2]:cur);
+      if(cur!==val)changed=true;
+      setI.call(localStorage,k2,val);
+      if(val!==j.d[k2])back[k2]=val;   // 서버에도 돌려준다
+    }
+    if(Object.keys(back).length)push(back);
     var q=pend();for(var k3 in q)mine[k3]=q[k3];
     if(Object.keys(mine).length)push(mine,function(){setPend({});});
     badge();
