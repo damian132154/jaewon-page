@@ -1,0 +1,11 @@
+{
+  "name": "뭐 먹지",
+  "short_name": "뭐먹지",
+  "start_url": "./뭐먹지.html",
+  "display": "standalone",
+  "background_color": "#fff7f0",
+  "theme_color": "#c2410c",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
