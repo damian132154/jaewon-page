@@ -117,7 +117,7 @@ footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:40px;
  line-height:1.8}
 code{background:var(--soft);padding:2px 7px;border-radius:5px;font-size:11.5px}
 </style></head>
-<body data-stamp='1788318287'>
+<body data-stamp='1788318718'>
 <div class="wrap">
 <header><div class="kicker">SKKU 에너지과학 · IBS 2D 양자이질구조</div>
 <h1>런 <b>표</b></h1>
@@ -156,14 +156,10 @@ function warnUnsaved(){
 }
 let CH={};
 try{CH=JSON.parse(localStorage.getItem(CK)||'{}');}catch(e){CH={};}
-// 엑셀이 나중에 바뀌었으면 엑셀이 이긴다 — 브라우저 값이 옛날 것을 덮지 않게.
-// 「엑셀에 반영」 을 누르고 다시 그리면 이 도장이 올라가 CH 가 비워진다.
+// 엑셀이 바뀌어도 브라우저 체크는 절대 지우지 않는다.
+// 엑셀이 같은 값을 갖게 된 키만 아래에서 덜어낸다 — 그때부터 엑셀이 원본이다.
 const STAMP=document.body.dataset.stamp||'0';
-if((CH.__stamp||'0')!==STAMP){
-  const kept={};
-  CH={__stamp:STAMP};
-  store(CK,CH);
-}
+CH.__stamp=STAMP;
 function paint(b,s){
   b.classList.remove('s1','s2');
   if(s===1)b.classList.add('s1');
@@ -177,8 +173,12 @@ const STATE={};
 document.querySelectorAll('.ck[data-k]').forEach(b=>{
   const k=b.dataset.k;
   if(!(k in STATE)){
-    STATE[k]=b.classList.contains('s2')?2:(b.classList.contains('s1')?1:0);
-    if(k in CH && k!=='__stamp')STATE[k]=+CH[k]||0;
+    const xls=b.classList.contains('s2')?2:(b.classList.contains('s1')?1:0);
+    STATE[k]=xls;
+    if(k in CH && k!=='__stamp'){
+      if((+CH[k]||0)===xls) delete CH[k];   // 엑셀이 따라잡았다 → 덜어낸다
+      else STATE[k]=+CH[k]||0;              // 아직 엑셀에 없다 → 그대로 둔다
+    }
   }
   paint(b,STATE[k]);
   b.onclick=()=>{
@@ -190,6 +190,7 @@ document.querySelectorAll('.ck[data-k]').forEach(b=>{
     count();
   };
 });
+store(CK,CH);
 function count(){
   document.querySelectorAll('section').forEach(sec=>{
     const all=sec.querySelectorAll('.ck[data-k]').length;
