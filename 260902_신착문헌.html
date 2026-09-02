@@ -215,4 +215,77 @@ header{border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(
  점수는 키워드 가중치 합. borazine · hBN · Ni(111) · borophene 이 가장 높다.<br>
  한 번 뜬 논문은 다시 안 뜬다. 기준을 바꾸려면
  <code>zz_tools/scripts/lit_daily.py</code> 의 KEYWORDS · MIN_SCORE 를 고칠 것.
-</div></div></body></html>
+</div></div><script>
+(function(){
+ var B='http://127.0.0.1:8765', K='NY_VYjt2P89920mftfQRhaQj';
+ var P=Storage.prototype, setI=P.setItem, delI=P.removeItem;
+ var Q='__pending', live=false, buf={}, timer=null;
+ function pend(){try{return JSON.parse(localStorage.getItem(Q)||'{}');}
+   catch(e){return {};}}
+ function setPend(o){try{setI.call(localStorage,Q,JSON.stringify(o));}
+   catch(e){}}
+ function badge(){
+   var n=document.getElementById('__syncbadge');
+   if(!n){n=document.createElement('div');n.id='__syncbadge';
+     n.style.cssText='position:fixed;right:12px;bottom:12px;z-index:99998;'+
+       'font:600 12px/1.4 inherit;padding:7px 13px;border-radius:20px;'+
+       'box-shadow:0 2px 10px rgba(0,0,0,.14);cursor:default';
+     document.body.appendChild(n);}
+   var k=Object.keys(pend()).length;
+   if(live){n.style.background='#0f766e';n.style.color='#fff';
+     n.textContent='기록 중 · 파일에 저장됨';}
+   else{n.style.background='#c2410c';n.style.color='#fff';
+     n.textContent=k?('기록 '+k+' 건 대기 · PC 켜면 저장된다')
+                    :'이 기기에서는 파일에 저장 안 됨';}
+ }
+ function push(d,cb){
+   fetch(B+'/api/ls?k='+K,{method:'POST',mode:'cors',
+     headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({d:d})})
+    .then(function(r){live=r.ok;if(r.ok&&cb)cb();badge();})
+    .catch(function(){live=false;badge();});
+ }
+ function flush(){
+   timer=null;
+   var o=pend();
+   for(var k in buf)o[k]=buf[k];
+   buf={};
+   if(!Object.keys(o).length)return;
+   setPend(o);
+   push(o,function(){setPend({});});
+ }
+ function queue(k,v){
+   if(k===Q)return;
+   buf[k]=v;clearTimeout(timer);timer=setTimeout(flush,600);
+ }
+ P.setItem=function(k,v){setI.call(this,k,v);
+   if(this===localStorage)queue(k,String(v));};
+ P.removeItem=function(k){delI.call(this,k);
+   if(this===localStorage)queue(k,null);};
+ addEventListener('pagehide',flush);
+ // 처음에 서버 것을 받아 온다 — 서버가 원본이다
+ fetch(B+'/api/ls?k='+K,{mode:'cors'})
+  .then(function(r){return r.ok?r.json():null;})
+  .then(function(j){
+    if(!j)return;
+    live=true;
+    (j.x||[]).forEach(function(k){delI.call(localStorage,k);});
+    var mine={};
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(k!==Q&&!(k in j.d)&&(j.x||[]).indexOf(k)<0)
+        mine[k]=localStorage.getItem(k);
+    }
+    for(var k2 in j.d)setI.call(localStorage,k2,j.d[k2]);
+    var q=pend();for(var k3 in q)mine[k3]=q[k3];
+    if(Object.keys(mine).length)push(mine,function(){setPend({});});
+    badge();
+    if(window.__afterSync)window.__afterSync();
+    else location.reload();
+  })
+  .catch(function(){live=false;badge();});
+ addEventListener('DOMContentLoaded',badge);
+ setInterval(function(){ if(!live) flush(); }, 20000);
+})();
+</script>
+</body></html>
