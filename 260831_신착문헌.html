@@ -399,10 +399,15 @@ header{border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(
     badge();
     // 값이 실제로 달라졌을 때만, 그것도 이 탭에서 딱 한 번만 다시 그린다.
     // (예전엔 무조건 reload 라 무한 새로고침이 났다)
+    // 서버 판 번호를 적어 두고, 같은 판이면 다시 그리지 않는다.
+    // (무조건 reload 면 무한 고리, 한 번만이면 나중 변경을 놓친다)
     try{
-      if(changed&&!sessionStorage.getItem('__synced')){
-        sessionStorage.setItem('__synced','1');
+      var lastv=sessionStorage.getItem('__syncv');
+      if(changed&&String(j.v)!==lastv){
+        sessionStorage.setItem('__syncv',String(j.v));
         location.reload();
+      }else if(!lastv){
+        sessionStorage.setItem('__syncv',String(j.v));
       }
     }catch(e){}
   })
