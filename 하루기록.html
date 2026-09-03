@@ -64,6 +64,21 @@ textarea:focus,input[type=text]:focus{border-color:var(--c,var(--blue))}
  margin-right:8px}
 .hm{display:inline-block;padding:1px 8px;border-radius:20px;font-size:11px;
  font-weight:700;background:#eef2ff;color:var(--blue);margin-right:7px}
+.hrow[data-k]{cursor:pointer}
+.hrow[data-k]:hover{border-color:var(--blue);background:#fbfcff}
+.daysel{display:flex;align-items:center;justify-content:center;gap:8px;
+ flex-wrap:wrap;margin:8px 0 8px}
+.daysel input{border:1px solid var(--line);border-radius:9px;padding:7px 10px;
+ font:inherit;font-size:13px;color:var(--ink);outline:none}
+.daysel input:focus{border-color:var(--blue)}
+.daysel button{border:1px solid var(--line);background:#fff;color:var(--ink2);
+ border-radius:9px;padding:7px 13px;font:inherit;font-size:12.5px;
+ font-weight:700;cursor:pointer}
+.daysel button:hover{background:#f2f5f9}
+.pastbar{max-width:560px;margin:0 auto 24px;padding:9px 13px;
+ border-radius:11px;background:#fff7ed;border:1px solid #f3c79c;
+ color:#9a3412;font-size:12.5px;text-align:center}
+.pastbar b{font-weight:800}
 footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:36px;
  line-height:1.8}
 </style></head><body>
@@ -71,6 +86,14 @@ footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:36px;
 <header><h1>하루 <b>기록</b></h1>
 <p class="lead">쓰면 저장된다. 안 써도 된다.</p></header>
 <div id="today"></div>
+<div class="daysel">
+  <button id="dPrev">‹ 하루 전</button>
+  <input type="date" id="dpick">
+  <button id="dNext">하루 뒤 ›</button>
+  <button id="dToday">오늘</button>
+</div>
+<div class="pastbar" id="pastbar" hidden>
+  <b id="pastday"></b> 기록을 열었다 — 여기서 고치면 그 날짜에 저장된다.</div>
 
 <div class="card" style="--c:#2563eb">
   <div class="ch"><div class="ci">✎</div><div class="ct">한 줄 일기</div>
@@ -107,7 +130,11 @@ footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:36px;
 </div>
 <script>
 const LS='daily_log';
-const KEY=new Date().toISOString().slice(0,10);
+function _ymd(d){return d.getFullYear()+'-'+
+  String(d.getMonth()+1).padStart(2,'0')+'-'+
+  String(d.getDate()).padStart(2,'0');}
+const TODAY=_ymd(new Date());   // toISOString 은 UTC 라 새벽에 어제로 밀린다
+let KEY=TODAY;                  // 지금 열어 놓은 날짜
 let DB={};
 try{DB=JSON.parse(localStorage.getItem(LS)||'{}');}catch(e){DB={};}
 const cur=()=>DB[KEY]||(DB[KEY]={});
@@ -117,29 +144,45 @@ function save(id){
     e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1100);}
   hist();
 }
-const d=new Date();
-document.getElementById('today').textContent=
-  d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 '+
-  ['일','월','화','수','목','금','토'][d.getDay()]+'요일';
+const DOW=['일','월','화','수','목','금','토'];
+function label(k){const d=new Date(k+'T00:00:00');
+  return d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 '+
+    DOW[d.getDay()]+'요일';}
 
-// 한 줄 일기 · 메모
-[['diary','s1']].forEach(([k,s])=>{
+// 한 줄 일기 · 감사 3 — 값은 KEY 가 바뀔 때마다 다시 채운다
+const FIELDS=[['diary','s1'],['t1','s2'],['t2','s2'],['t3','s2']];
+FIELDS.forEach(([k,s])=>{
   const el=document.getElementById(k);
-  el.value=cur()[k]||'';
   let t=null;
   el.addEventListener('input',()=>{
     cur()[k]=el.value;clearTimeout(t);t=setTimeout(()=>save(s),500);
   });
 });
-// 감사 3
-['t1','t2','t3'].forEach(k=>{
-  const el=document.getElementById(k);
-  el.value=(cur()[k]||'');
-  let t=null;
-  el.addEventListener('input',()=>{
-    cur()[k]=el.value;clearTimeout(t);t=setTimeout(()=>save('s2'),500);
-  });
-});
+function fill(){
+  FIELDS.forEach(([k])=>{
+    document.getElementById(k).value=cur()[k]||'';});
+  paintMood();
+}
+
+// 날짜 옮기기
+function goDay(k){
+  if(!k)return;
+  KEY=k;
+  document.getElementById('dpick').value=k;
+  document.getElementById('today').textContent=label(k);
+  const past=(k!==TODAY);
+  document.getElementById('pastbar').hidden=!past;
+  if(past)document.getElementById('pastday').textContent=label(k);
+  fill();hist();
+}
+function shiftDay(n){
+  const d=new Date(KEY+'T00:00:00');
+  d.setDate(d.getDate()+n);goDay(_ymd(d));
+}
+document.getElementById('dPrev').onclick=()=>shiftDay(-1);
+document.getElementById('dNext').onclick=()=>shiftDay(1);
+document.getElementById('dToday').onclick=()=>goDay(TODAY);
+document.getElementById('dpick').onchange=e=>goDay(e.target.value);
 // 기분
 const mood=document.getElementById('mood');
 const MN={1:'힘든 날이었다',2:'힘든 날이었다',3:'별로였다',4:'별로였다',
@@ -158,7 +201,6 @@ function paintMood(){
   document.getElementById('moodnote').textContent=
     v?(v+' 점 — '+MN[v]):'아직 안 눌렀다.';
 }
-paintMood();
 // 한마디 — 날짜로 고정되어 하루 동안 같은 것이 뜬다
 const Q=[
  ['완벽한 계획보다 오늘 돌린 한 판이 낫다.',''],
@@ -194,11 +236,14 @@ function hist(){
     if(th.length)bits.push('<span style="color:#0f766e">♡ '+
       th.join(' · ')+'</span>');
     if(!bits.length)return '';
-    return '<div class="hrow"><span class="hd">'+k.slice(5)+'</span>'+
-      bits.join(' ')+'</div>';
+    return '<div class="hrow" data-k="'+k+'" title="눌러서 이 날 열기">'+
+      '<span class="hd">'+k.slice(5)+'</span>'+bits.join(' ')+'</div>';
   }).join('')||'<div class="hrow">아직 없다.</div>';
+  box.querySelectorAll('[data-k]').forEach(r=>{
+    r.onclick=()=>{goDay(r.dataset.k);
+      window.scrollTo({top:0,behavior:'smooth'});};});
 }
-hist();
+goDay(TODAY);
 </script>
 <script>
 (function(){

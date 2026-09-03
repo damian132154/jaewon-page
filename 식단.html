@@ -142,6 +142,22 @@ footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:34px;
 .ddi b{color:var(--ink);font-weight:700}
 .ddi s{color:var(--ink3)}
 .ddx{color:var(--ink3);font-size:12.5px}
+.ddi{display:inline-flex;align-items:center;gap:6px}
+.ddi button{border:0;background:none;color:#c9d0d9;cursor:pointer;
+ font:inherit;font-size:11px;padding:0 1px;line-height:1}
+.ddi button:hover{color:var(--red)}
+.ddadd{margin-left:9px;border:1px solid var(--line);background:#fff;
+ color:var(--warm);border-radius:7px;padding:3px 9px;font:inherit;
+ font-size:11px;font-weight:800;cursor:pointer;letter-spacing:0;
+ text-transform:none}
+.ddadd:hover{border-color:var(--warm);background:#fff7f2}
+.pastbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+ margin:0 0 12px;padding:10px 13px;border-radius:11px;
+ background:#fff7ed;border:1px solid #f3c79c;color:#9a3412;font-size:12.5px}
+.pastbar b{font-weight:800}
+.pastbar button{margin-left:auto;border:0;border-radius:8px;padding:6px 14px;
+ background:var(--warm);color:#fff;font:inherit;font-size:12px;
+ font-weight:700;cursor:pointer}
 .ddw{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);
  margin-top:2px}
 .ddw b{color:var(--accent);font-variant-numeric:tabular-nums}
@@ -168,8 +184,13 @@ footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:34px;
 </div>
 
 <div class="card" style="--c:#0f766e">
-  <div class="ch"><div class="ci">▤</div><div class="ct">오늘 먹은 것</div>
+  <div class="ch"><div class="ci">▤</div>
+    <div class="ct" id="eatTitle">오늘 먹은 것</div>
     <span class="cs" id="dsum"></span></div>
+  <div class="pastbar" id="pastbar" hidden>
+    <span><b id="pastday"></b> 에 적는 중이다 —
+      아래에서 고르는 음식·몸무게가 이 날짜로 들어간다.</span>
+    <button id="backToday">오늘로</button></div>
   <div class="big">
     <div class="kpi"><div class="kv" id="kEat">0</div><div class="kl">먹음</div></div>
     <div class="kpi"><div class="kv" id="kTar">0</div><div class="kl">목표</div></div>
@@ -244,7 +265,11 @@ footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:34px;
 </div>
 <script>
 const LS='diet_log', LS2='diet_profile', LS3='weight_log';
-const KEY=new Date().toISOString().slice(0,10);
+function _ymd(d){return d.getFullYear()+'-'+
+  String(d.getMonth()+1).padStart(2,'0')+'-'+
+  String(d.getDate()).padStart(2,'0');}
+const TODAY=_ymd(new Date());   // toISOString 은 UTC 라 새벽에 어제로 밀린다
+let KEY=TODAY;                  // 지금 적는 날짜 — 달력에서 누르면 바뀐다
 let DB={}, P={sex:'M',age:29,ht:175,wt:75,act:1.55,goal:-0.5}, W={};
 try{DB=JSON.parse(localStorage.getItem(LS)||'{}');}catch(e){}
 try{P=Object.assign(P,JSON.parse(localStorage.getItem(LS2)||'{}'));}catch(e){}
@@ -421,7 +446,8 @@ const FOOD=[
 function el(id){return document.getElementById(id);}
 function cur(){return DB[KEY]||(DB[KEY]={});}
 function items(){return cur().items||(cur().items=[]);}
-function saveAll(){localStorage.setItem(LS,JSON.stringify(DB));render();}
+function saveAll(){localStorage.setItem(LS,JSON.stringify(DB));render();
+  if(typeof calBox==='function')calBox();}
 function saveP(){localStorage.setItem(LS2,JSON.stringify(P));calc();render();}
 
 const d=new Date();
@@ -586,9 +612,13 @@ function render(){
 el('wadd').onclick=()=>{
   const v=+el('wnew').value;
   if(!v)return;
-  W[KEY]=v;P.wt=v;el('wt').value=v;
+  W[KEY]=v;
   localStorage.setItem(LS3,JSON.stringify(W));
-  el('wnew').value='';saveP();whist();
+  el('wnew').value='';
+  // 지난 날짜를 적을 때는 '지금 내 몸무게' 를 덮어쓰지 않는다
+  if(KEY===TODAY){P.wt=v;el('wt').value=v;saveP();}
+  whist();syncDay();
+  if(typeof calBox==='function')calBox();
 };
 function whist(){
   const ks=Object.keys(W).sort().reverse().slice(0,10);
@@ -672,7 +702,30 @@ el('mPrev').onclick=()=>{calM.setMonth(calM.getMonth()-1);calBox();};
 el('mNext').onclick=()=>{calM.setMonth(calM.getMonth()+1);calBox();};
 el('mToday').onclick=()=>{
   const n=new Date();calM=new Date(n.getFullYear(),n.getMonth(),1);
-  viewK=KEY;calBox();};
+  pickDay(TODAY);};
+el('backToday').onclick=()=>{
+  const n=new Date();calM=new Date(n.getFullYear(),n.getMonth(),1);
+  pickDay(TODAY);
+  document.querySelector('#eatTitle').scrollIntoView(
+    {behavior:'smooth',block:'center'});};
+
+// 적는 날짜를 옮긴다 — 위쪽 카드가 전부 이 날짜를 보게 된다
+function pickDay(k){
+  viewK=k;KEY=k;
+  syncDay();render();whist();calBox();
+}
+
+// 지금 어느 날짜에 적고 있는지를 화면에 반영한다
+function syncDay(){
+  const past=KEY!==TODAY;
+  const d=new Date(KEY+'T00:00:00');
+  const lab=(d.getMonth()+1)+'월 '+d.getDate()+'일';
+  el('eatTitle').textContent=past?lab+' 먹은 것':'오늘 먹은 것';
+  el('wadd').textContent=past?lab+' 기록':'오늘 기록';
+  el('pastbar').hidden=!past;
+  if(past)el('pastday').textContent=lab+' '+DOWK[d.getDay()]+'요일';
+  el('wnew').placeholder=(W[KEY]!=null)?W[KEY]+' — 고치려면 새로':'kg';
+}
 
 function calBox(){
   const y=calM.getFullYear(),m=calM.getMonth();
@@ -689,7 +742,7 @@ function calBox(){
     if(ex||km){mEx++;mKm+=km;}
     const cls=kc&&(ex||km)?'both':(kc?'ate':((ex||km)?'did':''));
     h+='<button class="cd '+cls+(k===viewK?' sel':'')+
-      (k===KEY?' tod':'')+'" data-k="'+k+'">'+
+      (k===TODAY?' tod':'')+'" data-k="'+k+'">'+
       '<div class="cn">'+day+'</div><div class="cm">'+
       (kc?Math.round(kc/100)/10+'k':'')+
       (kc&&(ex||km)?'<br>':'')+
@@ -697,7 +750,7 @@ function calBox(){
   }
   el('cal2').innerHTML=h;
   el('cal2').querySelectorAll('[data-k]').forEach(b=>{
-    b.onclick=()=>{viewK=b.dataset.k;calBox();};});
+    b.onclick=()=>pickDay(b.dataset.k);});
   el('calinfo').textContent=
     '먹은 날 '+mDay+'일'+(mDay?' · 평균 '+Math.round(mk/mDay)+' kcal':'')+
     ' · 운동 '+mEx+'일'+(mKm?' · '+mKm.toFixed(1)+' km':'');
@@ -711,25 +764,31 @@ function dayBox(){
   const runs=WRUN.filter(x=>x.d===k);
   const wt=W[k];
   let h='<div class="ddh"><b>'+(d.getMonth()+1)+'월 '+d.getDate()+'일 '+
-    DOWK[d.getDay()]+'요일</b>'+(k===KEY?'<span class="ddt">오늘</span>':'')+
+    DOWK[d.getDay()]+'요일</b>'+
+    (k===TODAY?'<span class="ddt">오늘</span>'
+             :'<span class="ddt" style="background:var(--warm)">적는 중</span>')+
     '<span class="ddk">'+(kc?Math.round(kc)+' kcal':'기록 없음')+'</span></div>';
 
-  h+='<div class="ddl">먹은 것</div>';
+  h+='<div class="ddl">먹은 것'+
+    '<button class="ddadd" id="goPick">＋ 이 날에 추가</button></div>';
   if(items.length){
     h+=MEALS.map(mn=>{
-      const g=items.filter(x=>x.m===mn);
+      const g=items.map((x,i)=>[x,i]).filter(([x])=>x.m===mn);
       if(!g.length)return '';
-      const sum=g.reduce((a,b)=>a+(+b.k||0)*(+b.q||1),0);
+      const sum=g.reduce((a,[b])=>a+(+b.k||0)*(+b.q||1),0);
       return '<div class="ddl" style="margin:8px 0 5px;color:var(--warm);'+
         'text-transform:none;font-size:12px">'+
         mn+' <span style="color:var(--ink3);font-weight:700">'+
         Math.round(sum)+' kcal</span></div><div class="ddm">'+
-        g.map(x=>'<span class="ddi"><b>'+esc2(x.n)+'</b>'+
+        g.map(([x,i])=>'<span class="ddi"><b>'+esc2(x.n)+'</b>'+
           ((+x.q||1)!==1?' ×'+x.q:'')+' <s>'+
-          Math.round((+x.k||0)*(+x.q||1))+'</s></span>').join('')+'</div>';
+          Math.round((+x.k||0)*(+x.q||1))+'</s>'+
+          '<button data-del="'+i+'" title="지우기">✕</button></span>')
+          .join('')+'</div>';
     }).join('');
   } else {
-    h+='<div class="ddx">이 날은 적은 것이 없다.</div>';
+    h+='<div class="ddx">이 날은 적은 것이 없다 — '+
+       '＋ 를 누르면 음식 찾기로 간다.</div>';
   }
 
   h+='<div class="ddl">운동</div>';
@@ -747,10 +806,28 @@ function dayBox(){
   if(wt!=null)h+='<div class="ddl">몸무게</div>'+
     '<div class="ddw"><span><b>'+wt+'</b> kg</span></div>';
   el('dayd').innerHTML=h;
+
+  // 이 날 항목 지우기
+  el('dayd').querySelectorAll('[data-del]').forEach(b=>{
+    b.onclick=()=>{
+      const arr=((DB[k]||{}).items||[]);
+      arr.splice(+b.dataset.del,1);
+      localStorage.setItem(LS,JSON.stringify(DB));
+      render();calBox();
+    };});
+
+  // 이 날에 추가 — 적는 날짜를 옮기고 음식 찾기로 올려보낸다
+  const gp=el('goPick');
+  if(gp)gp.onclick=()=>{
+    if(KEY!==k)pickDay(k);
+    el('q').scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(()=>el('q').focus(),320);
+  };
 }
 function esc2(s){return String(s==null?'':s)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+syncDay();
 calBox();
 </script>
 <script>
