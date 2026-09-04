@@ -287,7 +287,7 @@ button.r{background:var(--red)}
     <label class="rl">시간 <input type="number" id="rmin" placeholder="0">
       <span>분</span></label>
     <div class="rpace" id="rpace">—</div>
-    <button class="rbtn" id="rAdd">달렸다 기록</button>
+    <button class="rbtn" id="rAdd">오늘 달렸다 기록</button>
   </div>
   <div class="big" style="margin-top:11px">
     <div class="kpi"><div class="kv" id="rWk">0</div><div class="kl">이번 주 km</div></div>
@@ -409,9 +409,13 @@ function repsOf(k){return ((DB[k]||{}).pu||[]).reduce((a,b)=>a+(+b||0),0);}
 function absOf(k){return Object.values((DB[k]||{}).ab||{})
   .reduce((a,b)=>a+(+b||0),0);}
 function kmOf(k){return RUN.filter(r=>r.d===k).reduce((a,b)=>a+(+b.km||0),0);}
-function didPU(k){return repsOf(k)>0||absOf(k)>0;}
+// 팔굽 진행(회차 · 48 시간 간격)은 **실제 팔굽 개수**로만 센다.
+// AB 만 누른 날이 팔굽 한 날로 세어지면 회차가 헛돌고
+// 다음 날 '어제 팔굽했다' 며 팔굽을 말린다.
+function didPU(k){return repsOf(k)>0;}
+function didAB(k){return absOf(k)>0;}
 function didRun(k){return kmOf(k)>0;}
-function didAny(k){return didPU(k)||didRun(k);}
+function didAny(k){return didPU(k)||didAB(k)||didRun(k);}
 
 // 이번 주에서 이 날 앞에 팔굽을 몇 번 했나 — 그것이 이 날의 회차가 된다
 function puIndexIn(k){
@@ -424,20 +428,30 @@ function weekStat(base){
   return {ks:ks, pu:ks.filter(didPU).length, run:ks.filter(didRun).length};
 }
 // 그 날의 팔굽 회차. **항상 값이 있다** — 어느 날이든 적을 수 있어야 한다.
+// 한 번 적은 날의 회차는 두 번 다시 안 바뀐다.
+// r.day 가 없으면 그 주 앞 날짜의 팔굽 횟수로 계산하는데, 나중에
+// 지난 날을 소급 입력하면 그 값이 움직여 이미 적어 둔 날의 목표 세트가
+// 달라지고 토글 한 번에 당시 숫자가 덮어써졌다. 그래서 못박는다.
+function pinDay(k,p){
+  const r=DB[k]||(DB[k]={});
+  if(repsOf(k)>0){ if(!r.day)r.day=p; }
+  else if(!r.pick){ delete r.day; }
+}
 function planOf(k){
   const r=DB[k]||{};
-  if(r.day)return r.day;              // 직접 고른 회차가 우선
+  if(r.day)return r.day;              // 못박힌 회차 · 직접 고른 회차가 우선
   return Math.min(3,puIndexIn(k)+1);
 }
 function isRun(k){return didRun(k);}
 // 그 날 실제로 한 것. 미래 날짜에 '예정' 을 박지 않는다 —
 // 빈 칸은 채우고 싶어지지만 안 지킨 예정은 실패로 남는다.
 function labelOf(k){
-  const p=didPU(k), r=didRun(k);
-  if(p&&r)return {t:'팔굽 + AB　·　3 km',done:true,rest:false};
-  if(p)return {t:'팔굽 + AB',done:true,rest:false};
-  if(r)return {t:'3 km 달리기',done:true,rest:false};
-  return {t:'—',done:false,rest:true};
+  const bits=[];
+  if(didPU(k))bits.push(didAB(k)?'팔굽 + AB':'팔굽');
+  else if(didAB(k))bits.push('AB 슬라이드');
+  if(didRun(k))bits.push('3 km');
+  if(!bits.length)return {t:'—',done:false,rest:true};
+  return {t:bits.join('　·　'),done:true,rest:false};
 }
 // 마지막 팔굽이 며칠 전인가 — 48 시간 간격을 지키는지 보는 용도
 function daysSincePU(k){
@@ -451,6 +465,19 @@ function puSets(day){
   const d=Math.min(3,Math.max(1,+day||1));
   return PU[Math.min(PU.length-1,(wk-1)*3+(d-1))][CFG.lv];
 }
+
+// 예전 기록 한 번 정리 — 회차가 안 박힌 날에 지금 값을 박는다.
+// 이래야 나중에 지난 날을 소급 입력해도 옛 날짜가 안 흔들린다.
+(function(){
+  if(CFG.pinned)return;
+  let changed=false;
+  Object.keys(DB).sort().forEach(k=>{
+    const r=DB[k];
+    if(r&&!r.day&&repsOf(k)>0){ r.day=Math.min(3,puIndexIn(k)+1); changed=true; }
+  });
+  CFG.pinned=1; saveC();
+  if(changed)save();
+})();
 
 let viewKey=KEY;
 let calM=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);
@@ -548,8 +575,8 @@ function carryBox(){
   b.className='sg';b.textContent=n;b.dataset.pick=v;
   b.onclick=()=>{
     const r=DB[viewKey]||(DB[viewKey]={});
-    delete r.day;delete r.mode;
-    if(v)r.day=+v;
+    delete r.day;delete r.mode;delete r.pick;
+    if(v){r.day=+v;r.pick=1;}
     save();render();
   };
   el('dayseg').appendChild(b);
@@ -566,7 +593,7 @@ function renderPU(){
   el('wkseg').querySelectorAll('.sg').forEach(b=>
     b.classList.toggle('on',+b.dataset.wk===CFG.wk));
   const _r=DB[viewKey]||{};
-  const md=_r.day?String(_r.day):'';
+  const md=_r.pick?String(_r.day):'';
   el('dayseg').querySelectorAll('.sg').forEach(b=>
     b.classList.toggle('on',b.dataset.pick===md));
   const k=viewKey, r=DB[k]||(DB[k]={}), p=planOf(k);
@@ -575,7 +602,7 @@ function renderPU(){
     DAYS[d.getDay()]+'요일';
   const sets=puSets(p);
   el('puTitle').textContent='팔굽혀펴기 — '+when+' · '+p+' 회차'+
-    (r.day?' (직접 고름)':'')+(didPU(k)?' · 기록됨':'');
+    (r.pick?' (직접 고름)':'')+(didPU(k)?' · 기록됨':'');
   r.pu=r.pu||[];
   let html='',done=0,total=0;
   if(!sets){
@@ -603,6 +630,7 @@ function renderPU(){
   el('puBody').querySelectorAll('.st').forEach(b=>b.onclick=()=>{
     const i=+b.dataset.i;
     r.pu[i]=r.pu[i]>0?0:sets[i];
+    pinDay(k,p);
     save();render();
   });
   const pct=total?done/total*100:0;
@@ -680,7 +708,8 @@ el('rmin').addEventListener('input',paceShow);
 el('rAdd').onclick=()=>{
   const km=+el('rkm').value||0,min=+el('rmin').value||0;
   if(!km||!min)return;
-  RUN.unshift({d:viewKey,km:km,min:min});
+  // 이 칸은 항상 '오늘' 이다. 날짜별 입력은 아래 달력 상세가 맡는다.
+  RUN.unshift({d:KEY,km:km,min:min});
   RUN=RUN.slice(0,200);saveR();el('rmin').value='';render();
 };
 function runBox(){
@@ -688,13 +717,12 @@ function runBox(){
   el('runwk').innerHTML=ks.map(k=>{
     const w=dOf(k).getDay(),m=kmOf(k);
     return '<div class="rdot'+(m?' run':'')+(k===KEY?' today':'')+'">'+
-      DAYS[w]+(m?' '+m.toFixed(1):(isRun(k)?' ◦':''))+'</div>';
+      DAYS[w]+(m?' '+m.toFixed(1):'')+'</div>';
   }).join('');
   const wk=ks.reduce((a,k)=>a+kmOf(k),0);
-  const cnt=ks.filter(k=>kmOf(k)>0).length;
-  const goal=ks.filter(k=>isRun(k)).length;
+  const cnt=ks.filter(k=>kmOf(k)>0).length, goal=GOAL.run;
   el('rgoal').textContent='이번 주 '+cnt+' / '+goal+' 회'+
-    (goal&&cnt>=goal?'　다 했다':'')+'　·　승온 · 냉각 중에 나갔다 온다';
+    (cnt>=goal?'　다 했다':'')+'　·　승온 · 냉각 중에 나갔다 온다';
   el('rWk').textContent=wk.toFixed(1);
   el('rTot').textContent=RUN.reduce((a,b)=>a+(+b.km||0),0).toFixed(1);
   const th=RUN.filter(r=>r.km>=2.9&&r.km<=3.2&&r.min>0);
@@ -713,7 +741,7 @@ function runBox(){
     saveR();render();
   });
   const best=th.length?Math.min(...th.map(r=>r.min)):0;
-  el('rtip').innerHTML=(goal&&cnt>=goal)
+  el('rtip').innerHTML=(cnt>=GOAL.run)
     ? '<b>이번 주 목표 채웠다.</b> 더 하는 것보다 다음 주에도 두 번 하는 게 낫다.'
     : (best&&best<=18
       ? '<b>3 km 18 분 아래.</b> 페이스는 충분하다. 이제 횟수를 늘려라.'
@@ -805,6 +833,7 @@ function calBox(){
   el('dayd').querySelectorAll('[data-ds]').forEach(bn=>bn.onclick=()=>{
     const i=+bn.dataset.ds;
     rc.pu[i]=rc.pu[i]>0?0:sets[i];
+    pinDay(k,pl);
     save();render();
   });
   el('dayd').querySelectorAll('[data-da]').forEach(bn=>bn.onclick=()=>{
