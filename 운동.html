@@ -146,6 +146,17 @@ footer{text-align:center;color:var(--ink3);font-size:12px;margin-top:32px;
  line-height:1.7}
 .carry b{color:var(--red)}
 .carry .row{margin-top:8px}
+.carry b{color:var(--ink)}          /* 이 상자는 경고가 아니라 현황이다 */
+.ovs:empty{display:none}
+.goal{display:flex;flex-direction:column;gap:7px}
+.gr{display:flex;align-items:center;gap:10px}
+.gn{font-size:12.5px;font-weight:700;color:var(--ink);min-width:82px}
+.gd{display:flex;gap:5px;flex:1}
+.dot{width:22px;height:9px;border-radius:20px;background:#e3e8ee;
+ display:inline-block}
+.dot.on{background:var(--green)}
+.gv{font-size:12px;font-weight:800;color:var(--ink2);
+ font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
 .miss{background:#fff;border:1px solid var(--line);border-radius:11px;
  padding:9px 13px;margin-top:10px}
 .mh{font-size:11.5px;font-weight:800;color:var(--ink2);margin-bottom:2px}
@@ -211,7 +222,7 @@ button.r{background:var(--red)}
 </style></head><body>
 <div class="wrap">
 <header><h1>운동 <b>기록</b></h1>
-<p class="lead">격일 · 팔굽 + AB → 3 km</p>
+<p class="lead">주 3 회씩 · 팔굽 + AB · 3 km · 요일은 자유</p>
 </header>
 <div id="today"></div>
 
@@ -384,100 +395,62 @@ const PU=[
 const AB=[
  ['AB 슬라이드',4,'8~12','무릎 대고. 허리 꺼지면 즉시 멈춘다. 내려갈 때 3 초']
 ];
-// 요일 배치 — 팔굽 월·수·금 + 토(보강) / 달리기 화·목 (토는 선택)
-// 팔굽 + AB 는 퇴근 후 집에서. 달리기는 실험 중 승온 · 냉각 시간에.
-function puSets(day){                 // day : 1·2·3 (0 = 보강 → 없음)
-  if(!day)return null;
-  const wk=Math.min(PU.length,Math.max(1,CFG.wk));
-  return PU[Math.min(PU.length-1,(wk-1)*3+(day-1))][CFG.lv];
-}
-// ── 격일 사이클 ────────────────────────────────
-// 기준일부터 하루 걸러 : 팔굽+AB → 3 km 달리기 → 팔굽+AB → …
-// 팔굽 사이가 항상 48 시간이라 회복 간격이 지켜지고, 그 사이 날은 달리기다.
-// 팔굽 날을 건너뛰면 사이클 전체가 하루 미끄러진다 (겹쳐서 두 배로 하지 않는다).
-const ANCHOR='2026-09-01';
+// ── 주 단위 목표 ──────────────────────────────
+// 날짜가 종목을 정하지 않는다. 이번 주 안에 팔굽 3 회 · 달리기 3 회를
+// 채우면 되고, 요일도 순서도 자유다. 하루에 둘 다 해도 된다.
+//
+// 예전 격일 사이클은 하나를 빼먹으면 그 뒤가 통째로 밀렸다.
+// 9/2 달리기를 안 했더니 9/3 도 9/4 도 달리기가 되면서
+// 팔굽이 나흘째 돌아오지 않았다 — 벌이 아니라 봉쇄였다.
+// 주 목표제는 빼먹은 것이 남은 날로 흩어질 뿐 아무것도 막지 않는다.
+const GOAL={pu:3, run:3};
 
-// 밀림은 숫자 하나가 아니라 '언제부터 밀렸는지' 의 목록이다.
-//   {from:'2026-09-03', n:1, why:'miss:2026-09-02'}
-// 이렇게 두어야 앞으로만 밀리고 **지나간 날짜의 일정표는 그대로 남는다.**
-// 예전 방식(CFG.off 하나)은 하루 밀 때마다 이미 끝난 날까지 다시 썼다.
-if(!CFG.shifts){
-  CFG.shifts=(CFG.off||0)?[{from:ANCHOR,n:CFG.off,why:'legacy'}]:[];
-  // 예전 catchUp 이 seen 자체는 안 봤다 — 그래서 아직 안 세어진 날이 남아 있다.
-  CFG.scanFrom=(CFG.off||0)?(CFG.seen||KEY):shift(KEY,-7);
-  saveC();
-}
-function offAt(k){
-  return (CFG.shifts||[]).reduce((a,s)=>a+((k>=s.from)?(+s.n||0):0),0);
-}
-function idxOf(k){
-  return Math.round((dOf(k)-dOf(ANCHOR))/86400000)-offAt(k);
-}
-// 그 날 직접 고른 것 : day 1·2·3 = 푸시업 / mode 'run' · 'rest'
-// 나머지는 음수 쪽에서도 돌아야 한다 — 안 그러면 하루 이상 밀었을 때
-// 사이클이 0 밑으로 떨어지면서 멀쩡한 날이 '휴식' 으로 사라진다.
-function cyc(k){                    // 0·2·4 = 팔굽 / 1·3 = 달리기 · null = 시작 전
-  if(k<ANCHOR)return null;
-  const i=idxOf(k);
-  return {run:(((i%2)+2)%2)===1, day:((((Math.floor(i/2))%3)+3)%3)+1};
-}
-function planOf(k){                 // 1·2·3 = 푸시업 Day · null = 팔굽 없는 날
-  const r=DB[k]||{};
-  if(r.mode==='run'||r.mode==='rest')return null;
-  if(r.day)return r.day;            // 직접 고른 것이 우선
-  const c=cyc(k);
-  return (!c||c.run)?null:c.day;
-}
-function isRun(k){
-  const r=DB[k]||{};
-  if(r.mode==='run')return true;
-  if(r.mode==='rest'||r.day)return false;
-  const c=cyc(k);
-  return !!c&&c.run;
-}
-function labelOf(k){
-  const pu=planOf(k);
-  if(pu!==null)return {t:'푸시업 Day '+pu+'　·　AB 슬라이드',rest:false};
-  if(isRun(k))return {t:'3 km 달리기',rest:false};
-  return {t:'휴식',rest:true};
-}
 function repsOf(k){return ((DB[k]||{}).pu||[]).reduce((a,b)=>a+(+b||0),0);}
 function absOf(k){return Object.values((DB[k]||{}).ab||{})
   .reduce((a,b)=>a+(+b||0),0);}
 function kmOf(k){return RUN.filter(r=>r.d===k).reduce((a,b)=>a+(+b.km||0),0);}
-function didAny(k){return repsOf(k)>0||absOf(k)>0||kmOf(k)>0;}
-// 지나간 날 중 아무것도 안 한 날은 **그 다음 날부터** 하루씩 민다.
-// 안 한 날 자체의 일정표는 건드리지 않는다 — 기록은 적힌 대로 남아야 한다.
-//
-// 날짜별로 why:'miss:날짜' 를 달아두고 매번 다시 맞춘다. 그래서
-//   · 몇 번을 열어도 같은 날이 두 번 밀리지 않고 (멱등)
-//   · 나중에 그 날 기록을 채워 넣으면 밀림이 저절로 사라진다.
-// 예전 코드는 seen 다음 날부터 봤기 때문에 '어제 빠뜨린 것' 을 못 셌다.
-function catchUp(){
-  CFG.shifts=CFG.shifts||[];
-  const seenWas=CFG.seen;
-  const have={};
-  CFG.shifts.forEach(s=>{if(s.why)have[s.why]=1;});
-  let k=CFG.scanFrom||shift(KEY,-7),guard=0,changed=false;
-  if(k<ANCHOR)k=ANCHOR;
-  while(k<KEY&&guard++<400){
-    const why='miss:'+k;
-    const due=(planOf(k)!==null)||isRun(k);
-    const missed=due&&!didAny(k)&&!(DB[k]||{}).skip;
-    if(missed&&!have[why]){
-      CFG.shifts.push({from:shift(k,1),n:1,why:why});
-      have[why]=1;changed=true;
-    }else if(!missed&&have[why]){
-      CFG.shifts=CFG.shifts.filter(s=>s.why!==why);
-      delete have[why];changed=true;
-    }
-    k=shift(k,1);
-  }
-  CFG.seen=KEY;
-  if(changed||seenWas!==KEY)saveC();
-  return CFG.shifts.filter(s=>String(s.why||'').indexOf('miss:')===0).length;
+function didPU(k){return repsOf(k)>0||absOf(k)>0;}
+function didRun(k){return kmOf(k)>0;}
+function didAny(k){return didPU(k)||didRun(k);}
+
+// 이번 주에서 이 날 앞에 팔굽을 몇 번 했나 — 그것이 이 날의 회차가 된다
+function puIndexIn(k){
+  let n=0;
+  for(const x of weekKeys(k)){ if(x>=k)break; if(didPU(x))n++; }
+  return n;
 }
-const SLID=catchUp();
+function weekStat(base){
+  const ks=weekKeys(base);
+  return {ks:ks, pu:ks.filter(didPU).length, run:ks.filter(didRun).length};
+}
+// 그 날의 팔굽 회차. **항상 값이 있다** — 어느 날이든 적을 수 있어야 한다.
+function planOf(k){
+  const r=DB[k]||{};
+  if(r.day)return r.day;              // 직접 고른 회차가 우선
+  return Math.min(3,puIndexIn(k)+1);
+}
+function isRun(k){return didRun(k);}
+// 그 날 실제로 한 것. 미래 날짜에 '예정' 을 박지 않는다 —
+// 빈 칸은 채우고 싶어지지만 안 지킨 예정은 실패로 남는다.
+function labelOf(k){
+  const p=didPU(k), r=didRun(k);
+  if(p&&r)return {t:'팔굽 + AB　·　3 km',done:true,rest:false};
+  if(p)return {t:'팔굽 + AB',done:true,rest:false};
+  if(r)return {t:'3 km 달리기',done:true,rest:false};
+  return {t:'—',done:false,rest:true};
+}
+// 마지막 팔굽이 며칠 전인가 — 48 시간 간격을 지키는지 보는 용도
+function daysSincePU(k){
+  let x=shift(k,-1);
+  for(let i=1;i<=14;i++){ if(didPU(x))return i; x=shift(x,-1); }
+  return 99;
+}
+// 회차별 세트. null 을 돌려주지 않는다 — 팔굽 칸이 사라지면 안 된다.
+function puSets(day){
+  const wk=Math.min(PU.length,Math.max(1,CFG.wk));
+  const d=Math.min(3,Math.max(1,+day||1));
+  return PU[Math.min(PU.length-1,(wk-1)*3+(d-1))][CFG.lv];
+}
 
 let viewKey=KEY;
 let calM=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);
@@ -486,23 +459,18 @@ el('today').textContent=TODAY.getFullYear()+'년 '+(TODAY.getMonth()+1)+'월 '+
 
 // ── 이번 주 개요 ──────────────────────────────
 function overview(){
-  const ks=weekKeys();
-  let done=0,reps=0,km=0;
+  const W=weekStat(KEY), ks=W.ks;
+  let reps=0,km=0,done=0;
   el('ov').innerHTML=ks.map(k=>{
-    const L=labelOf(k), d=dOf(k), r=repsOf(k), a=absOf(k), m=kmOf(k);
+    const L=labelOf(k), d=dOf(k), r=repsOf(k), m=kmOf(k);
     reps+=r;km+=m;
-    const any=didAny(k);
-    if(!L.rest&&any)done++;
-    let cls='ok',txt='예정';
-    if(any){cls='done';txt=(r?r+'개':'')+(m?(r?' · ':'')+m.toFixed(1)+'km':'')||'완료';}
+    if(L.done)done++;
+    let cls='',txt='';
+    if(L.done){cls='done';
+      txt=(r?r+'개':'')+(m?(r?' · ':'')+m.toFixed(1)+'km':'')||'완료';}
     else if(k===KEY){cls='now';txt='오늘';}
-    else if(k<KEY){
-      if((DB[k]||{}).skip){cls='skip';txt='건너뜀';}
-      else if(!L.rest){cls='miss';txt='안 함';}
-      else{cls='';txt='—';}
-    }
-    else if(L.rest){cls='';txt='휴식';}
-    return '<div class="ovr'+(L.rest?' rest':'')+(k===viewKey?' sel':'')+
+    else if(k<KEY){cls='';txt='—';}
+    return '<div class="ovr'+(L.done?'':' rest')+(k===viewKey?' sel':'')+
       (k===KEY?' tod':'')+'" data-k="'+k+'">'+
       '<div class="ovd">'+DAYS[d.getDay()]+'</div>'+
       '<div class="ovw">'+L.t+
@@ -518,105 +486,70 @@ function overview(){
   const min=repsOf(KEY)*3/60;
   el('kBurn').textContent=Math.round(3.8*3.5*PROF.wt/200*min)+
     Math.round(kmOf(KEY)*PROF.wt*1.036);
-  const _o=offAt(KEY);
-  el('wkinfo').textContent=LV[CFG.lv]+' · '+CFG.wk+'주차'+
-    (_o?'　·　'+_o+'일 밀림':'');
+  el('wkinfo').textContent=LV[CFG.lv]+' · '+CFG.wk+'주차　·　팔굽 '+
+    W.pu+'/'+GOAL.pu+'　·　달리기 '+W.run+'/'+GOAL.run;
   carryBox();
 }
-// ── 사이클 안내 ──────────────────────────────
+// ── 이번 주 목표 · 오늘 추천 ───────────────────
 function carryBox(){
-  const box=el('carrybox'), o=offAt(KEY);
-  const nx=[0,1,2,3].map(i=>{
-    const k=shift(KEY,i), L=labelOf(k), d=dOf(k);
-    return DAYS[d.getDay()]+' '+(L.rest?'휴식':
-      (planOf(k)!==null?'팔굽 Day '+planOf(k):'3 km'));
-  }).join('　→　');
-  const auto=(CFG.shifts||[]).filter(s=>String(s.why||'').indexOf('miss:')===0)
-    .reduce((a,s)=>a+(+s.n||0),0);
-  const man=(CFG.shifts||[]).filter(s=>s.why==='manual')
-    .reduce((a,s)=>a+(+s.n||0),0);
+  const box=el('carrybox'), W=weekStat(KEY);
+  const dot=(v,g)=>Array.from({length:g},(_,i)=>
+    '<i class="dot'+(i<v?' on':'')+'"></i>').join('');
+  const gap=daysSincePU(KEY), pu=didPU(KEY), rn=didRun(KEY);
 
-  // 지난 2 주 중 할 일이 있었는데 아무것도 안 적힌 날
-  const miss=[];
-  for(let i=14;i>=1;i--){
-    const k=shift(KEY,-i);
-    if(k<ANCHOR)continue;
-    if(labelOf(k).rest||didAny(k))continue;
-    miss.push({k:k,t:labelOf(k).t,skip:!!(DB[k]||{}).skip});
-  }
+  // 막지 않는다. 권할 뿐이다.
+  let rec;
+  if(pu&&rn)rec='<b>오늘 둘 다 했다.</b> 여기서 멈춰도 되고 더 해도 된다.';
+  else if(pu)rec='<b>오늘 팔굽 했다.</b> 달리기는 더 해도 괜찮다 — 부위가 다르다.';
+  else if(gap<=1)rec='<b>어제 팔굽을 했다. 오늘은 달리기가 낫다</b> — '+
+    '같은 부위는 48 시간이 필요하다. 그래도 하고 싶으면 해도 된다.';
+  else rec='<b>오늘 팔굽 하기 좋다</b> — 마지막 팔굽이 '+
+    (gap>=99?'한참':gap+'일')+' 전이다.'+(rn?' 달리기는 이미 했다.':'');
 
-  let h='<div class="carry" style="background:#f8fafc;border-color:var(--line)">'+
-    '<b>격일로 돈다.</b> 팔굽+AB 하고 그 다음 날 3 km, 다시 팔굽+AB. '+
-    '팔굽 사이가 48 시간이라 회복 간격이 지켜진다. '+
-    '<b>안 한 날이 생기면 그 다음 날부터</b> 하루씩 밀린다 — '+
-    '지나간 날짜는 적힌 그대로 두고 앞으로만 옮긴다. 겹쳐서 두 배로 하지 않는다.'+
-    (o?' 지금 <b>'+o+'일</b> 밀려 있다'+
-       ((auto&&man)?' (안 한 날 '+auto+' · 직접 '+man+')':'')+'.':'')+
-    '<div class="ogm" style="margin-top:7px;font-size:12.5px">'+nx+'</div>'+
+  box.innerHTML='<div class="carry" style="background:#f8fafc;'+
+    'border-color:var(--line)">'+
+    '<div class="goal">'+
+      '<div class="gr"><span class="gn">팔굽 + AB</span>'+
+        '<span class="gd">'+dot(W.pu,GOAL.pu)+'</span>'+
+        '<span class="gv">'+W.pu+' / '+GOAL.pu+'</span></div>'+
+      '<div class="gr"><span class="gn">3 km 달리기</span>'+
+        '<span class="gd">'+dot(W.run,GOAL.run)+'</span>'+
+        '<span class="gv">'+W.run+' / '+GOAL.run+'</span></div>'+
+    '</div>'+
+    '<div style="margin-top:10px">'+rec+'</div>'+
+    '<div class="tip"><b>요일은 안 정해져 있다.</b> 이번 주 안에 '+
+      '팔굽 3 회 · 달리기 3 회만 채우면 된다. 하루에 둘 다 해도 되고 '+
+      '순서도 상관없다. <b>빼먹어도 밀리지 않는다</b> — 남은 날에 하면 된다.</div>'+
     '<div class="row">'+
-      '<button class="b g" id="undoslide">오늘부터 하루 당기기</button>'+
-      '<button class="b g" id="pushslide">오늘부터 하루 밀기</button>'+
-      (man?'<button class="b g" id="resetslide">직접 민 것 되돌리기</button>':'')+
-      '</div>';
+      '<button class="b" id="addpu">팔굽 적기</button>'+
+      '<button class="b" id="addrun" style="background:#0891b2">'+
+        '달리기 적기</button>'+
+      (W.pu>=GOAL.pu&&CFG.wk<6
+        ? '<button class="b g" id="nextwk">'+(CFG.wk+1)+'주차로 올리기</button>'
+        : '')+
+    '</div></div>';
 
-  if(miss.length){
-    h+='<div class="miss"><div class="mh">안 한 날</div>'+
-      miss.map(m=>{
-        const d=dOf(m.k);
-        return '<div class="missr'+(m.skip?' sk':'')+'">'+
-          '<span class="missd">'+(d.getMonth()+1)+'/'+d.getDate()+' '+
-          DAYS[d.getDay()]+'</span>'+
-          '<span class="missw">'+m.t+'</span>'+
-          (m.skip
-            ? '<span class="cs" style="margin:0">건너뜀 · 안 밀림</span>'+
-              '<button data-un="'+m.k+'">되돌리기</button>'
-            : '<button data-mv="'+m.k+'">오늘로 가져오기</button>'+
-              '<button data-sk="'+m.k+'">안 한 걸로 넘기기</button>')+
-          '</div>';
-      }).join('')+'</div>';
-  }
-  box.innerHTML=h+'</div>';
-
-  el('undoslide').onclick=()=>{
-    (CFG.shifts=CFG.shifts||[]).push({from:KEY,n:-1,why:'manual'});
-    saveC();render();};
-  el('pushslide').onclick=()=>{
-    (CFG.shifts=CFG.shifts||[]).push({from:KEY,n:1,why:'manual'});
-    saveC();render();};
-  const rs=el('resetslide');
-  if(rs)rs.onclick=()=>{
-    CFG.shifts=(CFG.shifts||[]).filter(s=>s.why!=='manual');
-    saveC();render();};
-
-  // 안 한 것을 오늘 할 일로 삼는다 (사이클은 안 건드린다)
-  box.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{
-    const src=b.dataset.mv, r=DB[KEY]||(DB[KEY]={});
-    const pu=planOf(src);
-    delete r.day;delete r.mode;
-    if(pu!==null)r.day=pu; else r.mode='run';
-    save();viewKey=KEY;render();
-  });
-  // 안 한 걸로 확정 — 이 날은 밀림에서 빠진다
-  box.querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{
-    const k=b.dataset.sk;(DB[k]||(DB[k]={})).skip=true;
-    save();catchUp();render();
-  });
-  box.querySelectorAll('[data-un]').forEach(b=>b.onclick=()=>{
-    const k=b.dataset.un;delete (DB[k]||{}).skip;
-    save();catchUp();render();
-  });
+  // 오늘로 옮기고 해당 칸으로 데려다 준다 — 누르면 바로 적을 수 있게
+  el('addpu').onclick=()=>{
+    viewKey=KEY;render();
+    el('puTitle').scrollIntoView({behavior:'smooth',block:'start'});};
+  el('addrun').onclick=()=>{
+    viewKey=KEY;render();
+    el('rkm').scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(()=>{const x=el('rmin');if(x)x.focus();},380);};
+  const nw=el('nextwk');
+  if(nw)nw.onclick=()=>{CFG.wk=Math.min(6,CFG.wk+1);saveC();render();};
 }
 
 // ── 단계 · 주차 ───────────────────────────────
-[['자동',''],['Day 1','1'],['Day 2','2'],['Day 3','3'],
- ['3 km','run'],['휴식','rest']].forEach(([n,v])=>{
+[['자동',''],['1 회차','1'],['2 회차','2'],['3 회차','3']]
+ .forEach(([n,v])=>{
   const b=document.createElement('button');
   b.className='sg';b.textContent=n;b.dataset.pick=v;
   b.onclick=()=>{
     const r=DB[viewKey]||(DB[viewKey]={});
     delete r.day;delete r.mode;
-    if(v==='run'||v==='rest')r.mode=v;
-    else if(v)r.day=+v;
+    if(v)r.day=+v;
     save();render();
   };
   el('dayseg').appendChild(b);
@@ -633,7 +566,7 @@ function renderPU(){
   el('wkseg').querySelectorAll('.sg').forEach(b=>
     b.classList.toggle('on',+b.dataset.wk===CFG.wk));
   const _r=DB[viewKey]||{};
-  const md=_r.mode?_r.mode:(_r.day?String(_r.day):'');
+  const md=_r.day?String(_r.day):'';
   el('dayseg').querySelectorAll('.sg').forEach(b=>
     b.classList.toggle('on',b.dataset.pick===md));
   const k=viewKey, r=DB[k]||(DB[k]={}), p=planOf(k);
@@ -641,9 +574,8 @@ function renderPU(){
   const when=isToday?'오늘':(d.getMonth()+1)+'/'+d.getDate()+' '+
     DAYS[d.getDay()]+'요일';
   const sets=puSets(p);
-  el('puTitle').textContent='팔굽혀펴기 — '+when+
-    (p===null?(isRun(k)?' · 3 km 달리기 날':' · 쉬는 날'):' · Day '+p)+
-    ((r.day||r.mode)?' (직접 고름)':'');
+  el('puTitle').textContent='팔굽혀펴기 — '+when+' · '+p+' 회차'+
+    (r.day?' (직접 고름)':'')+(didPU(k)?' · 기록됨':'');
   r.pu=r.pu||[];
   let html='',done=0,total=0;
   if(!sets){
@@ -708,10 +640,9 @@ function renderPU(){
         '안 하면 다음 날부터 하루 밀린다 (지난 날짜는 그대로 남는다).'
       : '<b>왜 쉬나</b> — 같은 부위는 48 시간이 필요하다. '+
         '격일 배치가 그 간격을 지키게 되어 있다. 쉬는 것도 프로그램이다.';
-  }else if(offAt(k)){
-    tip='<b>'+offAt(k)+'일 밀려서 요일이 그만큼 옮겨졌다.</b> '+
-      '겹쳐서 두 배로 하지 마라 — 회복이 안 된 근육에 또 넣으면 그냥 다친다. '+
-      '주 3 회만 유지되면 프로그램은 그대로 간다.';
+  }else if(daysSincePU(k)<=1&&!didPU(k)){
+    tip='<b>어제 팔굽을 했다.</b> 같은 부위는 48 시간이 필요하다 — '+
+      '오늘은 달리기 쪽이 낫다. 그래도 하겠다면 세트를 줄여서.';
   }else if(pct>=100){
     tip='<b>다 했다.</b> 마지막 세트가 목표보다 5 개 이상 더 됐으면 '+
       '다음 주차로 넘어가도 된다. 안 되면 같은 주차를 한 번 더.';
