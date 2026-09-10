@@ -419,6 +419,7 @@ const AB=[
 // 팔굽이 나흘째 돌아오지 않았다 — 벌이 아니라 봉쇄였다.
 // 주 목표제는 빼먹은 것이 남은 날로 흩어질 뿐 아무것도 막지 않는다.
 const GOAL={pu:3, run:4};
+function runGoal(){const n=weekKeys().filter(k=>typeof PLAN!=='undefined'&&PLAN[k]).length;return n||GOAL.run;}
 
 function repsOf(k){return ((DB[k]||{}).pu||[]).reduce((a,b)=>a+(+b||0),0);}
 function absOf(k){return Object.values((DB[k]||{}).ab||{})
@@ -529,7 +530,7 @@ function overview(){
   el('kBurn').textContent=Math.round(3.8*3.5*PROF.wt/200*min)+
     Math.round(kmOf(KEY)*PROF.wt*1.036);
   el('wkinfo').textContent=LV[CFG.lv]+' · '+CFG.wk+'주차　·　팔굽 '+
-    W.pu+'/'+GOAL.pu+'　·　달리기 '+W.run+'/'+GOAL.run;
+    W.pu+'/'+GOAL.pu+'　·　달리기 '+W.run+'/'+runGoal();
   carryBox();
 }
 // ── 이번 주 목표 · 오늘 추천 ───────────────────
@@ -555,8 +556,8 @@ function carryBox(){
         '<span class="gd">'+dot(W.pu,GOAL.pu)+'</span>'+
         '<span class="gv">'+W.pu+' / '+GOAL.pu+'</span></div>'+
       '<div class="gr"><span class="gn">달리기</span>'+
-        '<span class="gd">'+dot(W.run,GOAL.run)+'</span>'+
-        '<span class="gv">'+W.run+' / '+GOAL.run+'</span></div>'+
+        '<span class="gd">'+dot(W.run,runGoal())+'</span>'+
+        '<span class="gv">'+W.run+' / '+runGoal()+'</span></div>'+
     '</div>'+
     '<div style="margin-top:10px">'+rec+'</div>'+
     '<div class="tip"><b>달리기는 계획표대로 (화 · 목 · 토 · 일), 팔굽 + AB 는 월 · 수 · 금.</b> '+
