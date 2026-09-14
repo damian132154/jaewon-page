@@ -419,7 +419,7 @@ const AB=[
 // 팔굽이 나흘째 돌아오지 않았다 — 벌이 아니라 봉쇄였다.
 // 주 목표제는 빼먹은 것이 남은 날로 흩어질 뿐 아무것도 막지 않는다.
 const GOAL={pu:3, run:4};
-function runGoal(){const n=weekKeys().filter(k=>typeof PLAN!=='undefined'&&PLAN[k]).length;return n||GOAL.run;}
+function runGoal(){const n=weekKeys().filter(k=>typeof PLAN!=='undefined'&&PLAN[k]&&PLAN[k].km>0).length;return n||GOAL.run;}
 
 function repsOf(k){return ((DB[k]||{}).pu||[]).reduce((a,b)=>a+(+b||0),0);}
 function absOf(k){return Object.values((DB[k]||{}).ab||{})
@@ -735,7 +735,7 @@ el('rAdd').onclick=()=>{
 const RACE={d:'2026-11-28'};
 const PLAN_START='2026-09-10';
 const WT={a:81,b:75,from:'2026-09-10',to:'2026-11-20'};   // 11/20 까지 75, 마지막 열흘은 유지
-const CK=[['2026-09-19','3 km TT'],['2026-10-17','3 km 재측정'],
+const CK=[['2026-09-18','3 km TT'],['2026-10-17','3 km 재측정'],
           ['2026-11-07','10 km 리허설'],['2026-11-28','대회']];
 const E='이지',Q='퀄리티',L='롱런',T='측정',R='대회';
 const EZ='전 구간 이지 {E}. 옆사람과 대화되는 속도. 시계 말고 숨으로 맞춘다. 느리다고 느끼면 맞는 거다.';
@@ -779,6 +779,15 @@ const PW=[
 const PLAN={};
 PW.forEach(w=>{[1,3,5,6].forEach((off,i)=>{const x=w[i+1];
   if(x)PLAN[shift(w[0],off)]=x;});});
+// 일정 변경 — 날짜 단위로 덮어쓴다. null 이면 그 날 계획 삭제. km 0 은 달리기 아닌 일정.
+const OV={
+ '2026-09-17':{km:4,t:E,s:'스트라이드 4개 · TT 전날',d:'4 km 전 구간 이지 {E}, 심박 150 이하. 끝나고 스트라이드 4개 (20 m 올리고 → 60 m 빠르게 → 20 m 내리기, 전력의 90 %). 더 하지 않는다. 오늘 밤 술 없음, 잠 7시간. 페가수스가 왔으면 오늘 신어보는 것까지만 — 내일 TT 는 지금 신발로.'},
+ '2026-09-18':{km:3,t:T,s:'3 km TT (토 → 금)',d:'<b>전날(목)</b> 4 km 이지 + 스트라이드 4개만. 술 없음, 잠 7시간. 신발은 지금 신는 것 — 새 페가수스는 TT 에 안 신는다.<br><b>당일</b> 2시간 전에 가볍게 먹고 그 뒤엔 물만. 코스는 평지 · 신호등 없는 곳 (트랙 7.5바퀴, 아니면 미리 잰 3 km 왕복).<br><b>순서 — 시계는 세 번 따로 기록</b><br>① 시계 시작 → 조깅 1.5 km (7′30″ 근처) → 저장<br>② 걷기 2분 + 스트라이드 2개 + 걷기 2분<br>③ 시계 새로 시작 → <b>3 km 전력</b> → 3.00 km 에 정지 · 저장. 이게 기록<br>④ 시계 새로 시작 → 조깅 1 km → 저장<br><b>3 km 뛰는 법</b> 1 km 째 참는다 ("갈 수 있겠다" 보다 살짝 느리게) · 2 km 째 유지 · 3 km 째 다 쏟는다. 페이스 목표 없음, 심박 안 봄, 전력이면 됨.<br><b>끝나고</b> 아래 달력 9/18 → km 3, 분은 소수로 (15분 30초 = 15.5). 그러면 페이스 존과 A/B/C 목표가 자동으로 바뀐다. 나쁘게 나와도 정상 — 복귀 2주차 선긋기다.'},
+ '2026-09-19':{km:0,t:'풋살',s:'중보들공원 10~12시',d:'풋살 2시간 = 이번 주 퀄리티. 시작 전 조깅 10분 + 스트라이드 3개 없이 첫 볼부터 전력질주 금지. 81 kg 에 3주차 다리다. 햄스트링·발목 나가면 대회 계획이 사라진다. 5시 반 전에 밥 한 끼, 잔 사이에 물.'},
+ '2026-09-20':null,
+ '2026-09-21':{km:6,t:E,s:'일요일 것 보충 · 근력 대신',d:'6 km. 일요일 못 뛴 이지런을 월요일로. 전 구간 이지 {E}. 밤샘 뒤라 심박이 평소보다 높게 나온다 — 페이스 말고 심박 150 이하로. 근력은 이날 쉰다.'},
+};
+Object.keys(OV).forEach(k=>{if(OV[k])PLAN[k]=OV[k];else delete PLAN[k];});
 function isStr(k){const d=dOf(k).getDay();return (d===1||d===3||d===5)&&k>=PLAN_START;}
 
 let WL={};try{WL=JSON.parse(LSget('weight_log')||'{}');}catch(e){}
@@ -830,7 +839,11 @@ function runBox(){
   el('rplan').innerHTML=ks.map(k=>{
     const p=PLAN[k], d=dOf(k), m=kmOf(k), r=RUN.filter(x=>x.d===k);
     let txt='',cls='',st='',rest=false;
-    if(p){
+    if(p&&!p.km){
+      txt='<b>'+p.t+'</b>'+(p.s?'<i>'+p.s+'</i>':'');
+      if(k===KEY){cls='now';st='오늘';}
+      if(m){wk+=m;}
+    }else if(p){
       planKm+=p.km;planN++;
       txt='<b>'+p.km+' km</b> '+p.t+(p.s?'<i>'+p.s+'</i>':'');
       if(m){cnt++;wk+=m;cls='done';
@@ -860,7 +873,7 @@ function runBox(){
   el('rBest').textContent=th.length?mmss(Math.min(...th.map(r=>r.min))):'—';
   // 오늘 할 것 — 세션 구성을 그대로 적는다
   const p=PLAN[KEY];
-  el('rtip').innerHTML=p?'<b>오늘 · '+p.km+' km '+p.t+(p.s?' · '+p.s:'')+'</b><br>'+fill(p.d,Z)
+  el('rtip').innerHTML=p?'<b>오늘 · '+(p.km?p.km+' km ':'')+p.t+(p.s?' · '+p.s:'')+'</b><br>'+fill(p.d,Z)
     :(isStr(KEY)
       ? '<b>오늘은 근력.</b> 위 팔굽 + AB 칸 그대로, 거기에 스쿼트 3×15 · 런지 3×12 · 카프레이즈 3×20. '+
         '달리기는 쉰다 — 정강이가 쉬는 날이다.'
@@ -909,6 +922,10 @@ function runBox(){
       (cur?' · 이번 주':'')+'</span><span class="et">'+tot+' km</span></div>'+
       ss.map((x,j)=>x?'<div class="exnote" style="margin-top:7px"><b style="color:var(--ink)">'+DN[j]+' · '+x.km+' km '+x.t+(x.s?' · '+x.s:'')+'</b><br>'+fill(x.d,Z)+'</div>'
         :'<div class="exnote" style="margin-top:7px"><b style="color:var(--ink3)">'+DN[j]+' · —</b></div>').join('')+
+      Object.keys(OV).filter(k=>k>=w[0]&&k<=shift(w[0],6)).sort().map(k=>{const o=OV[k],dd=dOf(k);
+        return '<div class="exnote" style="margin-top:7px;color:var(--warm)"><b style="color:var(--warm)">변경 '+
+          (dd.getMonth()+1)+'/'+dd.getDate()+' '+DAYS[dd.getDay()]+' · '+(o?(o.km?o.km+' km ':'')+o.t+(o.s?' · '+o.s:''):'삭제')+'</b>'+
+          (o?'<br>'+fill(o.d,Z):'')+'</div>';}).join('')+
       '</div>';
   }).join('');
 }
